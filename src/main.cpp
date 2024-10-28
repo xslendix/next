@@ -63,17 +63,12 @@ void produce_frame(void)
 
 	DrawFPS(20, 20);
 
-	DrawText("Welcome to raylib NEXT gamejam!", 150, 140, 30, BLACK);
-	DrawRectangleLinesEx(Rectangle { 0, 0, g_gs.widthf, g_gs.heightf }, 16, BLACK);
-
 	EndTextureMode();
 
 	BeginDrawing();
 
-	DrawTexturePro(g_gs.target.texture,
-	    Rectangle { 0, 0, (float)g_gs.target.texture.width, -(float)g_gs.target.texture.height },
-	    Rectangle { 0, 0, (float)g_gs.target.texture.width, (float)g_gs.target.texture.height },
-	    Vector2 { 0, 0 }, 0.0f, WHITE);
+	DrawTexturePro(g_gs.target.texture, { 0, 0, g_gs.widthf, -g_gs.heightf },
+	    { 0, 0, g_gs.widthf, g_gs.heightf }, { 0, 0 }, 0.0f, WHITE);
 
 	EndDrawing();
 }

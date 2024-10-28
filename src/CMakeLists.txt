@@ -2,18 +2,20 @@ add_executable(ByteRacer)
 # @NOTE: add more source files here
 
 set(SOURCES
+	Level.cpp
 	GameState.cpp
+	LevelEditor.cpp
 	main.cpp
 )
 
 target_sources(ByteRacer PRIVATE ${SOURCES})
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 target_include_directories(ByteRacer PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-target_link_libraries(ByteRacer raylib)
+target_link_libraries(ByteRacer raylib nlohmann_json)
 if(NOT WIN32)
 	target_link_libraries(ByteRacer m)
 endif()

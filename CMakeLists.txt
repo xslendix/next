@@ -51,6 +51,12 @@ CPMAddPackage(
     GIT_TAG master
 )
 
+CPMAddPackage(
+    NAME nlohmann_json
+    GITHUB_REPOSITORY nlohmann/json
+    VERSION 3.11.2  # Set the specific version you want, or omit to get the latest
+)
+
 # Compiler options for raylib
 if(MSVC)
     target_compile_options(raylib PRIVATE /wd4100 /wd4204)

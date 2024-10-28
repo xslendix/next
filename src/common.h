@@ -37,3 +37,15 @@ privDefer<F> defer_func(F f)
 #define DEFER_2(x, y) DEFER_1(x, y)
 #define DEFER_3(x)    DEFER_2(x, __COUNTER__)
 #define defer(code)   auto DEFER_3(_defer_) = defer_func([&]() { code; })
+
+[[noreturn]] inline void unreachable()
+{
+	// Uses compiler specific extensions if possible.
+	// Even if no extension is used, undefined behavior is still raised by
+	// an empty function body and the noreturn attribute.
+#if defined(_MSC_VER) && !defined(__clang__) // MSVC
+	__assume(false);
+#else // GCC, Clang
+	__builtin_unreachable();
+#endif
+}

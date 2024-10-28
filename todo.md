@@ -13,7 +13,7 @@
     - [ ] Pickup mode
         - [ ] Files
         - [ ] Keys
-    - [ ] Save/Load JSON
+    - [x] Save/Load JSON
 - [ ] Play mode
     - [ ] Player
     - [ ] Camera
