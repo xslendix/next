@@ -15,6 +15,8 @@
         - [ ] Keys
     - [ ] Save/Load JSON
 - [ ] Play mode
+    - [ ] Player
+    - [ ] Camera
     - [ ] Collisions (walls)
     - [ ] Item pickups
     - [ ] Trail

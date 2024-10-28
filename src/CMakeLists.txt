@@ -1,6 +1,12 @@
 add_executable(ByteRacer)
 # @NOTE: add more source files here
-target_sources(ByteRacer PRIVATE main.cpp)
+
+set(SOURCES
+	GameState.cpp
+	main.cpp
+)
+
+target_sources(ByteRacer PRIVATE ${SOURCES})
 
 set(CMAKE_CXX_STANDARD 23)
 
