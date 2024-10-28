@@ -29,10 +29,10 @@
 PLATFORM              ?= PLATFORM_DESKTOP
 
 # Define project variables
-PROJECT_NAME          ?= raylib_game
+PROJECT_NAME          ?= ByteRacer
 PROJECT_VERSION       ?= 1.0
 PROJECT_BUILD_PATH    ?= .
-PROJECT_SOURCE_FILES  ?= raylib_game.c
+PROJECT_SOURCE_FILES  ?= main.cpp
 
 # raylib library variables
 RAYLIB_SRC_PATH       ?= C:/raylib/raylib/src
@@ -107,29 +107,29 @@ endif
 
 # Define default C compiler: CC
 #------------------------------------------------------------------------------------------------
-CC = gcc
+CC = g++
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),OSX)
         # OSX default compiler
-        CC = clang
+        CC = clang++
     endif
     ifeq ($(PLATFORM_OS),BSD)
         # FreeBSD, OpenBSD, NetBSD, DragonFly default compiler
-        CC = clang
+        CC = clang++
     endif
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # HTML5 emscripten compiler
     # WARNING: To compile to HTML5, code must be redesigned
     # to use emscripten.h and emscripten_set_main_loop()
-    CC = emcc
+    CC = em++
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
     ifeq ($(USE_RPI_CROSS_COMPILER),TRUE)
         # Define RPI cross-compiler
         #CC = armv6j-hardfloat-linux-gnueabi-gcc
-        CC = $(RPI_TOOLCHAIN)/bin/arm-linux-gnueabihf-gcc
+        CC = $(RPI_TOOLCHAIN)/bin/arm-linux-gnueabihf-g++
     endif
 endif
 
@@ -155,7 +155,7 @@ endif
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -Wno-unused-value    ignore unused return values of some functions (i.e. fread())
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS = -std=c99 -Wall -Wno-missing-braces -Wno-unused-value -Wno-pointer-sign -D_DEFAULT_SOURCE $(PROJECT_CUSTOM_FLAGS)
+CFLAGS = -std=c++23 -Wall -Wextra -Werror -D_DEFAULT_SOURCE $(PROJECT_CUSTOM_FLAGS)
 #CFLAGS += -Wextra -Wmissing-prototypes -Wstrict-prototypes
 
 ifeq ($(BUILD_MODE),DEBUG)
@@ -176,7 +176,7 @@ else
     endif
 endif
 ifeq ($(PLATFORM),PLATFORM_DRM)
-    CFLAGS += -std=gnu99 -DEGL_NO_X11
+    CFLAGS += -DEGL_NO_X11
 endif
 
 # Define include paths for required headers: INCLUDE_PATHS
@@ -316,7 +316,7 @@ endif
 
 # Define all object files from source files
 #------------------------------------------------------------------------------------------------
-OBJS = $(patsubst %.c, %.o, $(PROJECT_SOURCE_FILES))
+OBJS = $(patsubst %.cpp, %.o, $(PROJECT_SOURCE_FILES))
 
 # Define processes to execute
 #------------------------------------------------------------------------------------------------

@@ -1,0 +1,14 @@
+﻿---
+BasedOnStyle: WebKit
+AlignConsecutiveMacros: 'true'
+AlignConsecutiveDeclarations: 'true'
+AlwaysBreakTemplateDeclarations: 'Yes'
+BreakBeforeBraces: 'Linux'
+ConstructorInitializerIndentWidth: '2'
+TabWidth: '4'
+UseTab: ForIndentation
+QualifierAlignment: Right
+PointerAlignment: Right
+ColumnLimit: 100
+InsertNewlineAtEOF: 'true'
+...
