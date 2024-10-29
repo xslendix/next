@@ -68,21 +68,21 @@ endif()
 add_subdirectory(src)
 
 # If using MSVC and ASAN, set debugger environment
-if(MSVC)
-    # Collect all targets into `all_targets` list manually or by using installable targets approach.
-    set(all_targets "")
-    get_property(all_target_names GLOBAL PROPERTY TARGETS)
-    foreach(target ${all_target_names})
-        get_target_property(is_imported ${target} IMPORTED)
-        if(NOT is_imported)
-            list(APPEND all_targets ${target})
-        endif()
-    endforeach()
-
-    message("all_targets=${all_targets}")
-
-    # Set environment for each target
-    foreach(target ${all_targets})
-        set_target_properties(${target} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$(VC_ExecutablePath_x64);%PATH%")
-    endforeach()
-endif()
+#if(MSVC)
+#    # Collect all targets into `all_targets` list manually or by using installable targets approach.
+#    set(all_targets "")
+#    get_property(all_target_names GLOBAL PROPERTY TARGETS)
+#    foreach(target ${all_target_names})
+#        get_target_property(is_imported ${target} IMPORTED)
+#        if(NOT is_imported)
+#            list(APPEND all_targets ${target})
+#        endif()
+#    endforeach()
+#
+#    message("all_targets=${all_targets}")
+#
+#    # Set environment for each target
+#    foreach(target ${all_targets})
+#        set_target_properties(${target} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$(VC_ExecutablePath_x64);%PATH%")
+#    endforeach()
+#endif()

@@ -5,14 +5,14 @@
 #include "common.h"
 
 #include "Level.h"
-#include "LevelEditor.h"
+#include "Player.h"
 
 struct GameState {
 	// Game logic
 	std::vector<Level> levels;
-	LevelEditor        level_editor;
+	Player player;
 
-	usize current_level;
+	std::optional<usize> current_level;
 
 	// Rendering
 	i32 width;
@@ -21,9 +21,12 @@ struct GameState {
 	f32 heightf;
 
 	RenderTexture2D target {};
-	Camera          camera {};
+	Camera2D        camera {};
 
-	Level &level() { return this->levels.at(current_level); }
+	Level *level() {
+		if (!current_level) return nullptr;
+		return &this->levels.at(*current_level);
+	}
 };
 
 extern GameState g_gs;

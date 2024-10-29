@@ -10,6 +10,9 @@
 
 #include "common.h"
 
+constexpr auto WALL_THICKNESS = 8;
+constexpr auto PICKUP_RADIUS = 10;
+
 struct Level {
 	struct Wall {
 		enum class Kind {
@@ -75,7 +78,7 @@ struct Level {
 		return deserialize(j);
 	}
 
-	void render(bool origin = false);
+	void render(Camera2D *camera, bool origin = false, bool render_player = true);
 
 	std::string name;
 	u16         files_required;

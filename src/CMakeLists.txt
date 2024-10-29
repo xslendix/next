@@ -2,6 +2,7 @@ add_executable(ByteRacer)
 # @NOTE: add more source files here
 
 set(SOURCES
+	Player.cpp
 	Level.cpp
 	GameState.cpp
 	LevelEditor.cpp

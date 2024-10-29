@@ -23,11 +23,11 @@ struct LevelEditor {
 	void set_tool(Tool tool) { this->tool = tool; }
 
 	void update(void);
-	void render(Camera2D cam)
+	void render(Camera2D *cam)
 	{
 		this->render_ui();
-		BeginMode2D(cam);
-		m_level->render();
+		m_level->render(cam);
+		BeginMode2D(*cam);
 		this->render_in_camera();
 		EndMode2D();
 	}

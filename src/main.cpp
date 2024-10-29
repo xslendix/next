@@ -1,11 +1,14 @@
 #include <filesystem>
 #include <string>
+#include <cmath>
+#include <iostream>
 
 #include <raylib.h>
 
 #include "common.h"
 
 #include "GameState.h"
+#include "Player.h"
 
 #if defined(PLATFORM_WEB)
 #define CUSTOM_MODAL_DIALOGS
@@ -21,41 +24,47 @@ constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_POINT;
 
 int main(void)
 {
-	Level new_level("238.244.3.56", 0);
-	new_level.walls.push_back({ Level::Wall::Kind::Wall });
-	new_level.walls.push_back({ Level::Wall::Kind::Door });
-	new_level.zones.push_back({ Level::Zone::Kind::End });
-	new_level.zones.push_back({ Level::Zone::Kind::DialogTrigger });
-	new_level.zones.push_back({ Level::Zone::Kind::OneWay });
-	new_level.zones.push_back({ Level::Zone::Kind::Danger });
-	new_level.pickups.push_back({});
-	new_level.export_to_file("Level.json");
+	try {
+		g_gs.levels.push_back(Level::read_from_file("Level.json"));
+		g_gs.current_level = 0;
+		g_gs.camera.target = {0,0};
+		g_gs.camera.zoom = 2;
+		//g_gs.camera.rotation = -90;
 
 #if !defined(_DEBUG)
-	SetTraceLogLevel(LOG_NONE);
+		SetTraceLogLevel(LOG_NONE);
 #endif
 
 #if !defined(PLATFORM_WEB)
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+		SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #endif
-	InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
+		InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
 
-	g_gs.target = LoadRenderTexture(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT);
-	SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
+		g_gs.target = LoadRenderTexture(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT);
+		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
 
 #if defined(PLATFORM_WEB)
-	emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
+		emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
 #else
-	SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
-	while (!WindowShouldClose())
-		produce_frame();
+		SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+		while (!WindowShouldClose())
+			produce_frame();
 #endif
 
-	UnloadRenderTexture(g_gs.target);
+		UnloadRenderTexture(g_gs.target);
 
-	CloseWindow();
+		CloseWindow();
+	} catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
+		return 1;
+	}
+
 
 	return 0;
+}
+
+float lerp(float a, float b, float f) {
+    return a + f * (b - a);
 }
 
 void produce_frame(void)
@@ -66,22 +75,45 @@ void produce_frame(void)
 		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
 	}
 
+	double dt = GetFrameTime();
+
 	g_gs.width = GetScreenWidth();
 	g_gs.height = GetScreenHeight();
 	g_gs.widthf = static_cast<float>(g_gs.width);
 	g_gs.heightf = static_cast<float>(g_gs.height);
 
+	g_gs.player.update(dt);
+
+	for (auto& pickup : g_gs.level()->pickups) {
+		if (pickup.time_since_pickup != -1) {
+			pickup.time_since_pickup += dt;
+		} else {
+			if (CheckCollisionCircles(g_gs.player.position, PLAYER_RADIUS, pickup.position, PICKUP_RADIUS)) {
+				pickup.time_since_pickup = 0;
+				g_gs.player.trail.push_back(Player::TrailPickup { &pickup, {} });
+			}
+		}
+	}
+
+	g_gs.camera.offset.x = g_gs.widthf / 2.;
+	g_gs.camera.offset.y = g_gs.heightf / 2.;
+	g_gs.camera.target = g_gs.player.position;
+	g_gs.camera.rotation = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
+
 	BeginTextureMode(g_gs.target);
-	ClearBackground(RAYWHITE);
+	{
+		ClearBackground(BLACK);
+		
+		if (g_gs.level()) {
+			g_gs.level()->render(&g_gs.camera);
+		}
 
-	DrawFPS(20, 20);
-
+		DrawFPS(20, 20);
+	}
 	EndTextureMode();
 
 	BeginDrawing();
-
 	DrawTexturePro(g_gs.target.texture, { 0, 0, g_gs.widthf, -g_gs.heightf },
 	    { 0, 0, g_gs.widthf, g_gs.heightf }, { 0, 0 }, 0.0f, WHITE);
-
 	EndDrawing();
 }

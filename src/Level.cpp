@@ -1,5 +1,7 @@
 #include "Level.h"
 
+#include "GameState.h"
+
 using json = nlohmann::json;
 
 Level::Level(std::string name, u16 files_required)
@@ -120,4 +122,42 @@ Level Level::deserialize(nlohmann::json &data)
 	}
 
 	return level;
+}
+
+void Level::render(Camera2D *camera, bool origin, bool render_player)
+{
+	if (origin)
+		DrawCircle(0, 0, 2, GREEN);                             
+
+	BeginMode2D(*camera);
+	{
+		for (auto const &wall : this->walls) {
+			Color wall_color = wall.kind == Level::Wall::Kind::Wall ? WHITE : YELLOW;
+			for (usize i = 0; i < wall.points.size() - 1; i++) {
+				auto first = wall.points.at(i);
+				auto second = wall.points.at(i + 1);
+				DrawLineEx(first, second, WALL_THICKNESS, wall_color);
+				DrawCircleV(first, WALL_THICKNESS / 2, wall_color);
+				DrawCircleV(second, WALL_THICKNESS / 2, wall_color);
+			}
+		}
+
+		for (auto const &pickup : this->pickups) {
+			Color pickup_color = pickup.kind == Level::Pickup::Kind::Key ? YELLOW : BLUE;
+			auto radius = PICKUP_RADIUS;
+			if (pickup.time_since_pickup != -1) {
+				if (pickup.time_since_pickup <= .3) {
+					radius *= (.3 - pickup.time_since_pickup) / .3;
+				} else {
+					radius = 0;
+				}
+			}
+
+			if (radius)
+				DrawCircleV(pickup.position, radius, pickup_color);
+		}
+
+		if (render_player) g_gs.player.render();
+	}
+	EndMode2D();
 }

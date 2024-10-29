@@ -1,28 +1,17 @@
 # ByteRacer To-Do list (epic)
 
-- [ ] Level editor
-    - [ ] Required files to unlock
-    - [ ] Polygon mode
-        - [ ] Wall
-        - [ ] Door (contains Key ID)
-    - [ ] Polygon zones mode
-        - [ ] Next level
-        - [ ] Dialog trigger
-        - [ ] One way
-        - [ ] Danger
-    - [ ] Pickup mode
-        - [ ] Files
-        - [ ] Keys
-    - [x] Save/Load JSON
 - [ ] Play mode
-    - [ ] Player
-    - [ ] Camera
+    - [-] Player
+		- [ ] Trail
+			- [ ] Rendering 
+			- [ ] Append items
+				- [ ] Finding out the position
+			- [ ] Physics
+			- [ ] Wall collisions
+    - [-] Camera
+		- [ ] Figure out a way to make the camera not always centered on the player
     - [ ] Collisions (walls)
-    - [ ] Item pickups
-    - [ ] Trail
-        - [ ] Append items
-        - [ ] Physics
-        - [ ] Wall collisions
+    - [x] Item pickups
     - [ ] Zones
         - [ ] Next level (invisible)
         - [ ] Dialog trigger (on join)
@@ -38,3 +27,17 @@
     - [ ] On node click, open popup on right with level info
         - [ ] Files collected
         - [ ] Best time
+- [ ] Level editor
+    - [ ] Required files to unlock
+    - [ ] Polygon mode
+        - [ ] Wall
+        - [ ] Door (contains Key ID)
+    - [ ] Polygon zones mode
+        - [ ] Next level
+        - [ ] Dialog trigger
+        - [ ] One way
+        - [ ] Danger
+    - [ ] Pickup mode
+        - [ ] Files
+        - [ ] Keys
+    - [x] Save/Load JSON
