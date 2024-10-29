@@ -1,0 +1,43 @@
+{
+	"files_required": 0,
+	"name": "238.244.3.56",
+	"pickups": [
+		{
+			"id": 0,
+			"kind": 0,
+			"points": [],
+			"x": 0.0,
+			"y": 0.0
+		}
+	],
+	"walls": [
+		{
+			"kind": 0,
+			"points": []
+		},
+		{
+			"kind": 1,
+			"points": []
+		}
+	],
+	"zones": [
+		{
+			"kind": 0,
+			"points": []
+		},
+		{
+			"kind": 1,
+			"points": [],
+			"value": 0
+		},
+		{
+			"kind": 2,
+			"points": [],
+			"value": 0.0
+		},
+		{
+			"kind": 3,
+			"points": []
+		}
+	]
+}

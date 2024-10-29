@@ -1,3 +1,6 @@
+#include <filesystem>
+#include <string>
+
 #include <raylib.h>
 
 #include "common.h"
@@ -18,6 +21,16 @@ constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_POINT;
 
 int main(void)
 {
+	Level new_level("238.244.3.56", 0);
+	new_level.walls.push_back({ Level::Wall::Kind::Wall });
+	new_level.walls.push_back({ Level::Wall::Kind::Door });
+	new_level.zones.push_back({ Level::Zone::Kind::End });
+	new_level.zones.push_back({ Level::Zone::Kind::DialogTrigger });
+	new_level.zones.push_back({ Level::Zone::Kind::OneWay });
+	new_level.zones.push_back({ Level::Zone::Kind::Danger });
+	new_level.pickups.push_back({});
+	new_level.export_to_file("Level.json");
+
 #if !defined(_DEBUG)
 	SetTraceLogLevel(LOG_NONE);
 #endif

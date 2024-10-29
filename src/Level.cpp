@@ -20,8 +20,8 @@ json Level::serialize(void)
 		wallj["points"] = json::array();
 		for (auto const &point : wall.points) {
 			json pointj;
-			pointj["x"] = point.x;
-			pointj["y"] = point.y;
+			pointj.push_back(point.x);
+			pointj.push_back(point.y);
 			wallj["points"].push_back(pointj);
 		}
 		j["walls"].push_back(wallj);
@@ -34,8 +34,8 @@ json Level::serialize(void)
 		zonej["points"] = json::array();
 		for (auto const &point : zone.points) {
 			json pointj;
-			pointj["x"] = point.x;
-			pointj["y"] = point.y;
+			pointj.push_back(point.x);
+			pointj.push_back(point.y);
 			zonej["points"].push_back(pointj);
 		}
 		switch (zone.kind) {
@@ -77,8 +77,8 @@ Level Level::deserialize(nlohmann::json &data)
 		wall.kind = wallj["kind"];
 		for (auto &pointj : wallj["points"]) {
 			Vector2 point;
-			point.x = pointj["x"];
-			point.y = pointj["y"];
+			point.x = pointj[0];
+			point.y = pointj[1];
 			wall.points.push_back(point);
 		}
 		level.walls.push_back(wall);
@@ -89,8 +89,8 @@ Level Level::deserialize(nlohmann::json &data)
 		zone.kind = static_cast<Zone::Kind>(zonej["kind"].get<int>());
 		for (auto &pointj : zonej["points"]) {
 			Vector2 point;
-			point.x = pointj["x"];
-			point.y = pointj["y"];
+			point.x = pointj[0];
+			point.y = pointj[1];
 			zone.points.push_back(point);
 		}
 		switch (zone.kind) {
