@@ -1,16 +1,15 @@
 # ByteRacer To-Do list (epic)
 
 - [ ] Play mode
-    - [-] Player
-		- [-] Trail
+    - [x] Player
+		- [x] Trail
 			- [x] Rendering 
 			- [x] Append items
 				- [x] Finding out the position
 			- [x] Physics
-			- [ ] Wall collisions
     - [x] Camera
 		- [x] Figure out a way to make the camera not always centered on the player
-    - [ ] Collisions (walls)
+    - [x] Collisions (walls)
     - [x] Item pickups
     - [ ] Zones
         - [ ] Next level (invisible)

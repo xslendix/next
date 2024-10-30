@@ -6,6 +6,7 @@
 #include <raymath.h>
 
 #include "GameState.h"
+#include "Level.h"
 
 void Player::render(void)
 {
@@ -22,6 +23,13 @@ void Player::render(void)
 		DrawCircleV(trailer.position, radius, RED);
 	}
 }
+
+Vector2 reflect(Vector2 const &v, Vector2 const &n)
+{
+	return Vector2Subtract(v, Vector2Scale(n, 2 * Vector2DotProduct(v, n)));
+}
+
+Vector2 Vector2Perpendicular(Vector2 const &v) { return { -v.y, v.x }; }
 
 void Player::update(double dt)
 {
@@ -58,6 +66,30 @@ void Player::update(double dt)
 		this->position = Vector2Add(this->position, this->velocity);
 		this->velocity.x *= PLAYER_FRICTION;
 		this->velocity.y *= PLAYER_FRICTION;
+	}
+
+	{ // Collision detection and response
+		for (auto const &wall : g_gs.level()->walls) {
+			for (size_t i = 0; i < wall.points.size() - 1; ++i) {
+				Vector2 wall_start = wall.points.at(i);
+				Vector2 wall_end = wall.points.at(i + 1);
+				Vector2 wall_dir = Vector2Subtract(wall_end, wall_start);
+
+				Vector2 to_player = Vector2Subtract(this->position, wall_start);
+				float   t = Vector2DotProduct(to_player, wall_dir)
+				    / Vector2DotProduct(wall_dir, wall_dir);
+				t = std::clamp(t, 0.0f, 1.0f);
+				Vector2 closest_point = Vector2Add(wall_start, Vector2Scale(wall_dir, t));
+
+				float radius = PLAYER_RADIUS;
+				if (Vector2Length(Vector2Subtract(this->position, closest_point)) < radius) {
+					Vector2 wall_normal = Vector2Normalize(Vector2Perpendicular(wall_dir));
+					this->velocity
+					    = Vector2Scale(reflect(this->velocity, wall_normal), BOUNCE_SLOWDOWN);
+					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, radius));
+				}
+			}
+		}
 	}
 
 	{ // Trail

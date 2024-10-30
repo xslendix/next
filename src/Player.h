@@ -9,6 +9,7 @@ constexpr auto PLAYER_SPEED = 10;
 constexpr auto PLAYER_TURNING_SPEED = 3;
 constexpr auto PLAYER_FRICTION = 0.98;
 constexpr auto PLAYER_MAX_SPEED = 5;
+constexpr auto BOUNCE_SLOWDOWN = 0.25;
 
 struct Player {
 	struct TrailPickup {
@@ -17,8 +18,8 @@ struct Player {
 		Vector2        direction;
 	};
 
-	void render(void); // To be called inside a camera context.
-	void update(double dt);
+	void    render(void); // To be called inside a camera context.
+	void    update(double dt);
 	Vector2 get_next_trail_position(void);
 
 	Vector2 position;
