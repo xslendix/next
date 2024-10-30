@@ -25,7 +25,7 @@ constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_POINT;
 int main(void)
 {
 	try {
-		g_gs.levels.push_back(Level::read_from_file("Level.json"));
+		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
 		g_gs.current_level = 0;
 		g_gs.player.position = g_gs.level()->start_position;
 		g_gs.player.angle = g_gs.level()->start_angle;

@@ -1,5 +1,11 @@
 #pragma once
 
+#if defined(PLATFORM_WEB)
+#define RESOURCES_PATH "./"
+#else
+#define RESOURCES_PATH "./resources/"
+#endif
+
 #include <cstddef>
 #include <cstdint>
 
