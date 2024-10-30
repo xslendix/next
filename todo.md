@@ -2,14 +2,14 @@
 
 - [ ] Play mode
     - [-] Player
-		- [ ] Trail
-			- [ ] Rendering 
-			- [ ] Append items
-				- [ ] Finding out the position
-			- [ ] Physics
+		- [-] Trail
+			- [x] Rendering 
+			- [x] Append items
+				- [x] Finding out the position
+			- [x] Physics
 			- [ ] Wall collisions
-    - [-] Camera
-		- [ ] Figure out a way to make the camera not always centered on the player
+    - [x] Camera
+		- [x] Figure out a way to make the camera not always centered on the player
     - [ ] Collisions (walls)
     - [x] Item pickups
     - [ ] Zones

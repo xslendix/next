@@ -1,7 +1,7 @@
-#include <filesystem>
-#include <string>
 #include <cmath>
+#include <filesystem>
 #include <iostream>
+#include <string>
 
 #include <raylib.h>
 
@@ -27,9 +27,11 @@ int main(void)
 	try {
 		g_gs.levels.push_back(Level::read_from_file("Level.json"));
 		g_gs.current_level = 0;
-		g_gs.camera.target = {0,0};
+		g_gs.player.position = g_gs.level()->start_position;
+		g_gs.player.angle = g_gs.level()->start_angle;
+		g_gs.camera.target = { 0, 0 };
 		g_gs.camera.zoom = 2;
-		//g_gs.camera.rotation = -90;
+		// g_gs.camera.rotation = -90;
 
 #if !defined(_DEBUG)
 		SetTraceLogLevel(LOG_NONE);
@@ -59,13 +61,10 @@ int main(void)
 		return 1;
 	}
 
-
 	return 0;
 }
 
-float lerp(float a, float b, float f) {
-    return a + f * (b - a);
-}
+float lerp(float a, float b, float f) { return a + f * (b - a); }
 
 void produce_frame(void)
 {
@@ -84,26 +83,30 @@ void produce_frame(void)
 
 	g_gs.player.update(dt);
 
-	for (auto& pickup : g_gs.level()->pickups) {
+	for (auto &pickup : g_gs.level()->pickups) {
 		if (pickup.time_since_pickup != -1) {
 			pickup.time_since_pickup += dt;
 		} else {
-			if (CheckCollisionCircles(g_gs.player.position, PLAYER_RADIUS, pickup.position, PICKUP_RADIUS)) {
+			if (CheckCollisionCircles(
+			        g_gs.player.position, PLAYER_RADIUS, pickup.position, PICKUP_RADIUS)) {
 				pickup.time_since_pickup = 0;
-				g_gs.player.trail.push_back(Player::TrailPickup { &pickup, {} });
+				g_gs.player.trail.push_back(
+				    Player::TrailPickup { &pickup, g_gs.player.get_next_trail_position() });
 			}
 		}
 	}
 
 	g_gs.camera.offset.x = g_gs.widthf / 2.;
 	g_gs.camera.offset.y = g_gs.heightf / 2.;
-	g_gs.camera.target = g_gs.player.position;
-	g_gs.camera.rotation = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
+	g_gs.camera.target.x = lerp(g_gs.camera.target.x, g_gs.player.position.x, dt * 4);
+	g_gs.camera.target.y = lerp(g_gs.camera.target.y, g_gs.player.position.y, dt * 4);
+	g_gs.camera.rotation
+	    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
 
 	BeginTextureMode(g_gs.target);
 	{
 		ClearBackground(BLACK);
-		
+
 		if (g_gs.level()) {
 			g_gs.level()->render(&g_gs.camera);
 		}

@@ -82,6 +82,8 @@ struct Level {
 
 	std::string name;
 	u16         files_required;
+	Vector2     start_position;
+	float       start_angle;
 
 	std::vector<Wall>   walls;
 	std::vector<Zone>   zones;

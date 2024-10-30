@@ -15,6 +15,10 @@ json Level::serialize(void)
 	json j;
 	j["name"] = this->name;
 	j["files_required"] = this->files_required;
+	j["start_position"] = json::array();
+	j["start_position"].push_back(this->start_position.x);
+	j["start_position"].push_back(this->start_position.y);
+	j["start_angle"] = this->start_angle;
 	j["walls"] = json::array();
 	for (auto const &wall : walls) {
 		json wallj;
@@ -60,7 +64,6 @@ json Level::serialize(void)
 	for (auto const &pickup : pickups) {
 		json pickupj;
 		pickupj["kind"] = pickup.kind;
-		pickupj["points"] = json::array();
 		pickupj["x"] = pickup.position.x;
 		pickupj["y"] = pickup.position.y;
 		pickupj["id"] = pickup.id;
@@ -73,6 +76,9 @@ json Level::serialize(void)
 Level Level::deserialize(nlohmann::json &data)
 {
 	Level level(data["name"], data["files_required"].get<u16>());
+	level.start_position.x = data["start_position"][0];
+	level.start_position.y = data["start_position"][1];
+	level.start_angle = data["start_angle"];
 
 	for (auto &wallj : data["walls"]) {
 		Wall wall;
@@ -127,7 +133,7 @@ Level Level::deserialize(nlohmann::json &data)
 void Level::render(Camera2D *camera, bool origin, bool render_player)
 {
 	if (origin)
-		DrawCircle(0, 0, 2, GREEN);                             
+		DrawCircle(0, 0, 2, GREEN);
 
 	BeginMode2D(*camera);
 	{
@@ -144,7 +150,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 
 		for (auto const &pickup : this->pickups) {
 			Color pickup_color = pickup.kind == Level::Pickup::Kind::Key ? YELLOW : BLUE;
-			auto radius = PICKUP_RADIUS;
+			auto  radius = PICKUP_RADIUS;
 			if (pickup.time_since_pickup != -1) {
 				if (pickup.time_since_pickup <= .3) {
 					radius *= (.3 - pickup.time_since_pickup) / .3;
@@ -157,7 +163,8 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 				DrawCircleV(pickup.position, radius, pickup_color);
 		}
 
-		if (render_player) g_gs.player.render();
+		if (render_player)
+			g_gs.player.render();
 	}
 	EndMode2D();
 }
