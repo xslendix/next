@@ -82,7 +82,3 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: github.event_name == 'release' && github.event.action == 'published'
 
-    - name: Kill lingering processes
-      run: taskkill /f /im emsdk.exe /t
-      shell: cmd
-      continue-on-error: true
