@@ -46,7 +46,7 @@ int main(void)
 		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
 
 #if defined(PLATFORM_WEB)
-		emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
+		emscripten_set_main_loop(produce_frame, 60, 1);
 #else
 		SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 		while (!WindowShouldClose())
