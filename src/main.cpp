@@ -28,6 +28,12 @@ void set_level(usize i, bool reset_dialog = false);
 int main(void)
 {
 	try {
+		if (!std::filesystem::exists("resources")) {
+			std::filesystem::path currentPath = std::filesystem::current_path();
+			std::filesystem::path parentPath = currentPath.parent_path();
+			ChangeDirectory(parentPath.string().c_str());
+		}
+
 		g_gs.palette = ColorPalette::generate();
 		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
 		g_gs.current_level = 0;

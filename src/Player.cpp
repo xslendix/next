@@ -28,8 +28,7 @@ void Player::render(void)
 void Player::update(double dt)
 {
 	{ // Player controller
-		constexpr auto PLAYER_VELOCITY_ADDITION
-		    = PLAYER_SPEED + PLAYER_SPEED * (1 - PLAYER_FRICTION);
+		constexpr auto PLAYER_VELOCITY_ADDITION = PLAYER_SPEED;
 
 		if (IsKeyDown(KEY_UP)) {
 			this->velocity.x += std::cos(this->angle) * PLAYER_VELOCITY_ADDITION * dt;
@@ -69,9 +68,11 @@ void Player::update(double dt)
 			};
 		}
 
-		this->position = Vector2Add(this->position, this->velocity);
-		this->velocity.x *= PLAYER_FRICTION;
-		this->velocity.y *= PLAYER_FRICTION;
+		this->position = Vector2Add(this->position, Vector2Scale(this->velocity, dt));
+
+		float friction_factor = std::pow(PLAYER_FRICTION, dt);
+		this->velocity.x *= friction_factor;
+		this->velocity.y *= friction_factor;
 	}
 
 	{ // Collision detection and response
@@ -109,15 +110,15 @@ void Player::update(double dt)
 
 					Vector2 wall_normal = Vector2Normalize(Vector2Perpendicular(wall_dir));
 
-					// Determine which side of the wall the player is on
 					if (Vector2DotProduct(
 					        Vector2Subtract(this->position, closest_point), wall_normal)
 					    < 0) {
 						wall_normal = Vector2Negate(wall_normal);
 					}
 
+					float bounce_factor = BOUNCE_SLOWDOWN;
 					this->velocity = Vector2Scale(
-					    Vector2Reflect(this->velocity, wall_normal), BOUNCE_SLOWDOWN);
+					    Vector2Reflect(this->velocity, wall_normal), bounce_factor);
 					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, radius));
 				}
 			}
