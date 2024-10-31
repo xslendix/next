@@ -4,6 +4,7 @@
 
 #include "common.h"
 
+#include "Color.h"
 #include "Level.h"
 #include "Player.h"
 
@@ -12,6 +13,8 @@ struct GameState {
 	std::vector<Level> levels;
 	Player             player;
 	f64                time_spent;
+
+	ColorPalette palette;
 
 	std::optional<usize> current_level;
 

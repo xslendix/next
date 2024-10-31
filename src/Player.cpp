@@ -22,7 +22,7 @@ void Player::render(void)
 		DrawCircleV(trailer.position, radius, RED);
 	}
 
-	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, GREEN);
+	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, g_gs.palette.primary);
 }
 
 void Player::update(double dt)

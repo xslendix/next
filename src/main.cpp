@@ -28,6 +28,7 @@ void set_level(usize i, bool reset_dialog = false);
 int main(void)
 {
 	try {
+		g_gs.palette = ColorPalette::generate();
 		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
 		g_gs.current_level = 0;
 		set_level(0);
@@ -107,6 +108,9 @@ void produce_frame(void)
 	if (IsKeyPressed(KEY_R)) {
 		set_level(*g_gs.current_level);
 	}
+	if (IsKeyPressed(KEY_P)) {
+		g_gs.palette = ColorPalette::generate();
+	}
 
 	g_gs.width = GetScreenWidth();
 	g_gs.height = GetScreenHeight();
@@ -143,17 +147,17 @@ void produce_frame(void)
 
 	BeginTextureMode(g_gs.target);
 	{
-		ClearBackground(BLACK);
+		ClearBackground(g_gs.palette.game_background);
 
 		if (g_gs.level()) {
 			g_gs.level()->render(&g_gs.camera);
 		}
 
-		DrawFPS(20, 20);
+		DrawFPS(20, 60);
 		DrawText(TextFormat("%02d:%02d:%02d", static_cast<int>(g_gs.time_spent / 60) % 60,
 		             static_cast<int>(g_gs.time_spent) % 60,
 		             static_cast<int>(g_gs.time_spent * 100) % 100),
-		    20, 60, 20, WHITE);
+		    20, 20, 20, g_gs.palette.primary);
 	}
 	EndTextureMode();
 

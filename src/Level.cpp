@@ -166,18 +166,31 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 	BeginMode2D(*camera);
 	{
 		for (auto const &zone : this->zones) {
-			bool show = zone.kind == Zone::Kind::OneWay || zone.kind == Zone::Kind::Danger;
+			Color col;
+			switch (zone.kind) {
+			case Zone::Kind::End:
+			case Zone::Kind::DialogTrigger:
+				col = { 0, 0, 0, 0 };
 #ifdef _DEBUG
-			show = true;
+				col = DARKGREEN;
 #endif
-			DrawTriangleFan(zone.points.data(), zone.points.size(), DARKGREEN);
+				break;
+			case Zone::Kind::OneWay:
+				col = g_gs.palette.one_way_zone_background;
+				break;
+			case Zone::Kind::Danger:
+				col = g_gs.palette.danger_zone_background;
+				break;
+			}
+			DrawTriangleFan(zone.points.data(), zone.points.size(), col);
 		}
 
 		for (auto const &wall : this->walls) {
 			if (wall.time_since_trigger != -1)
 				continue;
 
-			Color wall_color = wall.kind == Level::Wall::Kind::Wall ? WHITE : YELLOW;
+			Color wall_color
+			    = wall.kind == Level::Wall::Kind::Wall ? g_gs.palette.wall : g_gs.palette.key_door;
 			for (usize i = 0; i < wall.points.size() - 1; i++) {
 				auto first = wall.points.at(i);
 				auto second = wall.points.at(i + 1);
@@ -188,7 +201,8 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 		}
 
 		for (auto const &pickup : this->pickups) {
-			Color pickup_color = pickup.kind == Level::Pickup::Kind::Key ? YELLOW : BLUE;
+			Color pickup_color = pickup.kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door
+			                                                             : g_gs.palette.file;
 			auto  radius = PICKUP_RADIUS;
 			if (pickup.time_since_pickup != -1) {
 				if (pickup.time_since_pickup <= .3) {
