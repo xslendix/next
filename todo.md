@@ -11,10 +11,12 @@
 		- [x] Figure out a way to make the camera not always centered on the player
     - [x] Collisions (walls)
     - [x] Item pickups
-    - [ ] Zones
+    - [x] Respawn
+    - [x] Timer
+    - [-] Zones
         - [ ] Next level (invisible)
         - [ ] Dialog trigger (on join)
-        - [ ] One way
+        - [x] One way
         - [ ] Danger
     - [ ] Dialog UI
     - [ ] Save best time

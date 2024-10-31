@@ -10,7 +10,8 @@
 struct GameState {
 	// Game logic
 	std::vector<Level> levels;
-	Player player;
+	Player             player;
+	f64                time_spent;
 
 	std::optional<usize> current_level;
 
@@ -23,8 +24,10 @@ struct GameState {
 	RenderTexture2D target {};
 	Camera2D        camera {};
 
-	Level *level() {
-		if (!current_level) return nullptr;
+	Level *level()
+	{
+		if (!current_level)
+			return nullptr;
 		return &this->levels.at(*current_level);
 	}
 };

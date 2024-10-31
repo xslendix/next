@@ -61,13 +61,24 @@ json Level::serialize(void)
 		j["zones"].push_back(zonej);
 	}
 
-	for (auto const &pickup : pickups) {
+	for (auto const &pickup : this->pickups) {
 		json pickupj;
 		pickupj["kind"] = pickup.kind;
 		pickupj["x"] = pickup.position.x;
 		pickupj["y"] = pickup.position.y;
 		pickupj["id"] = pickup.id;
 		j["pickups"].push_back(pickupj);
+	}
+
+	for (auto const &dialog : this->dialogs) {
+		json dialog_arr = json::array();
+		for (auto const &dialog : dialog) {
+			json dialogj;
+			dialogj["name"] = dialog.name;
+			dialogj["message"] = dialog.message;
+			dialog_arr.push_back(dialogj);
+		}
+		j["dialogs"].push_back(dialog_arr);
 	}
 
 	return j;
@@ -89,7 +100,12 @@ Level Level::deserialize(nlohmann::json &data)
 			point.y = pointj[1];
 			wall.points.push_back(point);
 		}
-		level.walls.push_back(wall);
+		if (wall.kind == Wall::Kind::Door) {
+			wall.key_id = wallj["key_id"];
+			level.walls.emplace(level.walls.begin(), wall);
+		} else {
+			level.walls.push_back(wall);
+		}
 	}
 
 	for (auto &zonej : data["zones"]) {
@@ -109,6 +125,7 @@ Level Level::deserialize(nlohmann::json &data)
 			break;
 		case Zone::Kind::OneWay:
 			zone.value.one_way_angle = zonej["value"];
+			zone.power = zonej["power"];
 			break;
 		case Zone::Kind::Danger:
 			break;
@@ -127,6 +144,17 @@ Level Level::deserialize(nlohmann::json &data)
 		level.pickups.push_back(pickup);
 	}
 
+	for (auto &dialogj : data["dialogs"]) {
+		std::vector<Dialog> dialogs;
+		for (auto &dialog_entryj : dialogj) {
+			Dialog dialog;
+			dialog.name = dialog_entryj["name"];
+			dialog.message = dialog_entryj["message"];
+			dialogs.push_back(dialog);
+		}
+		level.dialogs.push_back(dialogs);
+	}
+
 	return level;
 }
 
@@ -137,7 +165,18 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 
 	BeginMode2D(*camera);
 	{
+		for (auto const &zone : this->zones) {
+			bool show = zone.kind == Zone::Kind::OneWay || zone.kind == Zone::Kind::Danger;
+#ifdef _DEBUG
+			show = true;
+#endif
+			DrawTriangleFan(zone.points.data(), zone.points.size(), DARKGREEN);
+		}
+
 		for (auto const &wall : this->walls) {
+			if (wall.time_since_trigger != -1)
+				continue;
+
 			Color wall_color = wall.kind == Level::Wall::Kind::Wall ? WHITE : YELLOW;
 			for (usize i = 0; i < wall.points.size() - 1; i++) {
 				auto first = wall.points.at(i);

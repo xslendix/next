@@ -5,13 +5,12 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#include "GameMath.h"
 #include "GameState.h"
 #include "Level.h"
 
 void Player::render(void)
 {
-	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, GREEN);
-
 	for (auto const &trailer : this->trail) {
 		auto const &pickup = *trailer.ptr;
 		float       radius = PICKUP_RADIUS;
@@ -22,14 +21,9 @@ void Player::render(void)
 		}
 		DrawCircleV(trailer.position, radius, RED);
 	}
-}
 
-Vector2 reflect(Vector2 const &v, Vector2 const &n)
-{
-	return Vector2Subtract(v, Vector2Scale(n, 2 * Vector2DotProduct(v, n)));
+	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, GREEN);
 }
-
-Vector2 Vector2Perpendicular(Vector2 const &v) { return { -v.y, v.x }; }
 
 void Player::update(double dt)
 {
@@ -52,6 +46,18 @@ void Player::update(double dt)
 			this->angle += PLAYER_TURNING_SPEED * dt;
 		}
 
+		for (auto const &zone : g_gs.level()->zones) {
+			if (zone.kind != Level::Zone::Kind::OneWay)
+				continue;
+
+			if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS, zone.points)) {
+				this->velocity.x += std::cos(zone.value.one_way_angle) * PLAYER_VELOCITY_ADDITION
+				    * zone.power * dt;
+				this->velocity.y += std::sin(zone.value.one_way_angle) * PLAYER_VELOCITY_ADDITION
+				    * zone.power * dt;
+			}
+		}
+
 		float vel_norm = std::sqrt(
 		    (this->velocity.x * this->velocity.x) + (this->velocity.y * this->velocity.y));
 		if (vel_norm > PLAYER_MAX_SPEED) {
@@ -69,7 +75,10 @@ void Player::update(double dt)
 	}
 
 	{ // Collision detection and response
-		for (auto const &wall : g_gs.level()->walls) {
+		for (auto &wall : g_gs.level()->walls) {
+			if (wall.time_since_trigger != -1)
+				wall.time_since_trigger += dt;
+
 			for (size_t i = 0; i < wall.points.size() - 1; ++i) {
 				Vector2 wall_start = wall.points.at(i);
 				Vector2 wall_end = wall.points.at(i + 1);
@@ -82,10 +91,33 @@ void Player::update(double dt)
 				Vector2 closest_point = Vector2Add(wall_start, Vector2Scale(wall_dir, t));
 
 				float radius = PLAYER_RADIUS;
-				if (Vector2Length(Vector2Subtract(this->position, closest_point)) < radius) {
+				float distance = Vector2Length(Vector2Subtract(this->position, closest_point));
+				if (distance < radius) {
+					if (wall.kind == Level::Wall::Kind::Door) {
+						auto should_cont = false;
+						for (usize i = 0; i < this->trail.size(); i++) {
+							auto &item = this->trail[i];
+							if (item.ptr->id == wall.key_id) {
+								should_cont = true;
+								wall.time_since_trigger = 0;
+								trail_remove(i);
+							}
+						}
+						if (should_cont || wall.time_since_trigger != -1)
+							continue;
+					}
+
 					Vector2 wall_normal = Vector2Normalize(Vector2Perpendicular(wall_dir));
-					this->velocity
-					    = Vector2Scale(reflect(this->velocity, wall_normal), BOUNCE_SLOWDOWN);
+
+					// Determine which side of the wall the player is on
+					if (Vector2DotProduct(
+					        Vector2Subtract(this->position, closest_point), wall_normal)
+					    < 0) {
+						wall_normal = Vector2Negate(wall_normal);
+					}
+
+					this->velocity = Vector2Scale(
+					    Vector2Reflect(this->velocity, wall_normal), BOUNCE_SLOWDOWN);
 					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, radius));
 				}
 			}
@@ -110,6 +142,8 @@ void Player::update(double dt)
 		}
 	}
 }
+
+void Player::trail_remove(usize i) { this->trail.erase(this->trail.begin() + i); }
 
 Vector2 Player::get_next_trail_position(void)
 {

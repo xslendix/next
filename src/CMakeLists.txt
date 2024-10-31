@@ -1,7 +1,13 @@
 add_executable(ByteRacer)
 # @NOTE: add more source files here
 
+if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+	add_compile_definitions(DEBUG=1)
+	add_compile_definitions(_DEBUG=1)
+endif()
+
 set(SOURCES
+	GameMath.cpp
 	Player.cpp
 	Level.cpp
 	GameState.cpp

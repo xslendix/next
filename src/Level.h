@@ -23,6 +23,8 @@ struct Level {
 		Kind                 kind;
 		std::vector<Vector2> points;
 		u8                   key_id;
+
+		f64 time_since_trigger = -1;
 	};
 
 	struct Zone {
@@ -40,6 +42,9 @@ struct Level {
 			i32 dialog_index;
 			f32 one_way_angle;
 		} value;
+		f32 power;
+
+		f64 time_since_trigger = -1;
 	};
 
 	struct Pickup {
@@ -53,6 +58,11 @@ struct Level {
 		i32     id = 0;
 
 		f64 time_since_pickup = -1; // If >=0, it's picked up.
+	};
+
+	struct Dialog {
+		std::string name;
+		std::string message;
 	};
 
 	Level() = delete;
@@ -85,7 +95,8 @@ struct Level {
 	Vector2     start_position;
 	float       start_angle;
 
-	std::vector<Wall>   walls;
-	std::vector<Zone>   zones;
-	std::vector<Pickup> pickups;
+	std::vector<Wall>                walls;
+	std::vector<Zone>                zones;
+	std::vector<Pickup>              pickups;
+	std::vector<std::vector<Dialog>> dialogs;
 };

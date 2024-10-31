@@ -21,6 +21,7 @@ struct Player {
 	void    render(void); // To be called inside a camera context.
 	void    update(double dt);
 	Vector2 get_next_trail_position(void);
+	void    trail_remove(usize i);
 
 	Vector2 position;
 	Vector2 velocity;
