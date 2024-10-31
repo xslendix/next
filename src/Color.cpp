@@ -33,11 +33,10 @@ ColorPalette ColorPalette::generate(void)
 
 	// Specific colors with contrasting hues
 	p.key_door
-	    = ColorFromHSV(GetRandomValue(35, 57), get_random_saturation(), get_random_value(.6, .9));
+	    = ColorFromHSV(GetRandomValue(35, 57), get_random_saturation(), get_random_value(.8, .9));
 	p.file
 	    = ColorFromHSV(GetRandomValue(120, 150), get_random_saturation(), get_random_value(.6, .9));
-	p.one_way_zone_background
-	    = ColorFromHSV(GetRandomValue(35, 57), get_random_saturation(), get_random_value(.3, .5));
+	p.one_way_zone_background = ColorBrightness(p.game_background, -.25);
 	p.danger_zone_background
 	    = ColorFromHSV(GetRandomValue(0, 16), get_random_saturation(), get_random_value(.3, .5));
 
