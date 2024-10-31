@@ -158,6 +158,14 @@ Level Level::deserialize(nlohmann::json &data)
 	return level;
 }
 
+void Level::Pickup::render(Vector2 position, float radius) const {
+	if (!radius)
+		return;
+	Color pickup_color = this->kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door
+																 : g_gs.palette.file;
+	DrawCircleV(position, radius, pickup_color);
+}
+
 void Level::render(Camera2D *camera, bool origin, bool render_player)
 {
 	if (origin)
@@ -201,8 +209,6 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 		}
 
 		for (auto const &pickup : this->pickups) {
-			Color pickup_color = pickup.kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door
-			                                                             : g_gs.palette.file;
 			auto  radius = PICKUP_RADIUS;
 			if (pickup.time_since_pickup != -1) {
 				if (pickup.time_since_pickup <= .3) {
@@ -212,8 +218,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 				}
 			}
 
-			if (radius)
-				DrawCircleV(pickup.position, radius, pickup_color);
+			pickup.render(pickup.position, radius);
 		}
 
 		if (render_player)

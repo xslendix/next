@@ -19,9 +19,10 @@ void Player::render(void)
 				radius *= pickup.time_since_pickup / .3;
 			}
 		}
-		DrawCircleV(trailer.position, radius, RED);
+		trailer.ptr->render(trailer.position, radius);
 	}
 
+	DrawCircleV(this->position, PLAYER_RADIUS, DARKGREEN);
 	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, g_gs.palette.primary);
 }
 
@@ -91,8 +92,8 @@ void Player::update(double dt)
 				t = std::clamp(t, 0.0f, 1.0f);
 				Vector2 closest_point = Vector2Add(wall_start, Vector2Scale(wall_dir, t));
 
-				float radius = PLAYER_RADIUS;
 				float distance = Vector2Length(Vector2Subtract(this->position, closest_point));
+				float radius = PLAYER_RADIUS + (WALL_THICKNESS / 2);
 				if (distance < radius) {
 					if (wall.kind == Level::Wall::Kind::Door) {
 						auto should_cont = false;
@@ -110,16 +111,26 @@ void Player::update(double dt)
 
 					Vector2 wall_normal = Vector2Normalize(Vector2Perpendicular(wall_dir));
 
-					if (Vector2DotProduct(
-					        Vector2Subtract(this->position, closest_point), wall_normal)
-					    < 0) {
+					if (Vector2DotProduct(Vector2Subtract(this->position, closest_point), wall_normal) < 0) {
 						wall_normal = Vector2Negate(wall_normal);
 					}
 
-					float bounce_factor = BOUNCE_SLOWDOWN;
-					this->velocity = Vector2Scale(
-					    Vector2Reflect(this->velocity, wall_normal), bounce_factor);
-					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, radius));
+					float angle_cos = Vector2DotProduct(Vector2Normalize(this->velocity), wall_normal);
+					float angle_degrees = std::acos(angle_cos) * RAD2DEG;
+
+					float initial_speed = Vector2Length(this->velocity);
+
+					constexpr float BOUNCE_ANGLE_THRESHOLD = 20.0f;
+					if (angle_degrees > BOUNCE_ANGLE_THRESHOLD) {
+						constexpr float bounce_factor = BOUNCE_SLOWDOWN;
+						this->velocity = Vector2Scale(Vector2Reflect(this->velocity, wall_normal), bounce_factor);
+					} else {
+						Vector2 wall_tangent = Vector2Normalize(wall_dir);
+						this->velocity = Vector2Scale(wall_tangent, initial_speed);
+					}
+
+					float correction_offset = radius + 0.15f;
+					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, correction_offset));
 				}
 			}
 		}

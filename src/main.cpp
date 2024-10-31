@@ -91,6 +91,7 @@ void set_level(usize i, bool reset_dialog)
 	g_gs.player.velocity = { 0, 0 };
 	g_gs.player.angle = g_gs.level()->start_angle;
 	g_gs.player.trail.clear();
+	g_gs.player.health = PLAYER_MAX_HP;
 
 	g_gs.camera.target = g_gs.player.position;
 	g_gs.camera.zoom = 2;
@@ -138,11 +139,23 @@ void produce_frame(void)
 		}
 	}
 
+	bool in_danger = false;
 	for (auto &zone : g_gs.level()->zones) {
 		if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS, zone.points)) {
 			// TraceLog(LOG_INFO, "Colliding with zone");
+			if (!in_danger && zone.kind == Level::Zone::Kind::Danger) {
+				in_danger = true;
+			}
 		}
 	}
+
+	if (in_danger)
+		g_gs.player.health -= dt;
+	else
+		g_gs.player.health += dt;
+
+	if (g_gs.player.health > PLAYER_MAX_HP)
+		g_gs.player.health = PLAYER_MAX_HP;
 
 	g_gs.camera.offset.x = g_gs.widthf / 2.;
 	g_gs.camera.offset.y = g_gs.heightf / 2.;
@@ -157,6 +170,17 @@ void produce_frame(void)
 
 		if (g_gs.level()) {
 			g_gs.level()->render(&g_gs.camera);
+		}
+
+		if (g_gs.player.health != PLAYER_MAX_HP) {
+			constexpr auto BAR_WIDTH = 30.f;
+			Vector2 hp_position = {
+				g_gs.widthf / 2,
+				g_gs.heightf * 0.8,
+			};
+			Vector2 left = { hp_position.x - BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };
+			Vector2 right = { hp_position.x + BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };
+			DrawLineEx(left, right, 3, g_gs.palette.primary);
 		}
 
 		DrawFPS(20, 60);

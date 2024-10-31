@@ -53,6 +53,8 @@ struct Level {
 			File,
 		};
 
+		void render(Vector2 pos, float radius) const;
+
 		Kind    kind;
 		Vector2 position;
 		i32     id = 0;
