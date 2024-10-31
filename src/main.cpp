@@ -156,6 +156,8 @@ void produce_frame(void)
 
 	if (g_gs.player.health > PLAYER_MAX_HP)
 		g_gs.player.health = PLAYER_MAX_HP;
+	else if (g_gs.player.health < 0)
+		set_level(*g_gs.current_level);
 
 	g_gs.camera.offset.x = g_gs.widthf / 2.;
 	g_gs.camera.offset.y = g_gs.heightf / 2.;
@@ -175,8 +177,8 @@ void produce_frame(void)
 		if (g_gs.player.health != PLAYER_MAX_HP) {
 			constexpr auto BAR_WIDTH = 30.f;
 			Vector2 hp_position = {
-				g_gs.widthf / 2,
-				g_gs.heightf * 0.8,
+				static_cast<float>(g_gs.widthf / 2),
+				static_cast<float>(g_gs.heightf * 0.8),
 			};
 			Vector2 left = { hp_position.x - BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };
 			Vector2 right = { hp_position.x + BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };

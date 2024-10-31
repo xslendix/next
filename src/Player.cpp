@@ -22,7 +22,9 @@ void Player::render(void)
 		trailer.ptr->render(trailer.position, radius);
 	}
 
+#ifdef _DEBUG
 	DrawCircleV(this->position, PLAYER_RADIUS, DARKGREEN);
+#endif
 	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, g_gs.palette.primary);
 }
 
