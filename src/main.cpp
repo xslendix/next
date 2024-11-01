@@ -73,7 +73,7 @@ int main(void)
 	g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 60, nullptr, 0);
 
 #if defined(PLATFORM_WEB)
-	emscripten_set_main_loop(produce_frame, 60, 1);
+	emscripten_set_main_loop(produce_frame, 0, 1);
 #else
 	SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 	while (!WindowShouldClose())
