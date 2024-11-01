@@ -19,13 +19,10 @@ void Player::render(void)
 				radius *= pickup.time_since_pickup / .3;
 			}
 		}
-		trailer.ptr->render(trailer.position, radius);
+		trailer.ptr->render(trailer.position, radius, atan2(trailer.direction.y, trailer.direction.x) * RAD2DEG);
 	}
 
-#ifdef _DEBUG
-	DrawCircleV(this->position, PLAYER_RADIUS, DARKGREEN);
-#endif
-	DrawPoly(this->position, 3, PLAYER_RADIUS, this->angle * RAD2DEG, g_gs.palette.primary);
+	g_gs.render_texture(this->position, 0, this->angle * RAD2DEG + 90, PLAYER_RADIUS, g_gs.palette.primary);
 }
 
 void Player::update(double dt)

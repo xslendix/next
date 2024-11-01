@@ -1,0 +1,26 @@
+{
+  "gateway.omnitek.co": [
+    [
+      {
+        "name": "Byte",
+        "msg": "Hello? Can you hear me?"
+      }, 
+      {
+        "name": "Byte",
+        "msg": "Ok good. Here's a brief rundown on what you need to do."
+      }, 
+      {
+        "name": "Byte",
+        "msg": "I want you to collect all files that you find and send them over to me."
+      },
+      {
+        "name": "Byte",
+        "msg": "The more you find, the more access you get to the rest of the network."
+      }, 
+      {
+        "name": "Byte",
+        "msg": "I am sure you have questions but we don't have time. Go!"
+      } 
+    ]
+  ]
+}

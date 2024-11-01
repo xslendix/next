@@ -53,18 +53,13 @@ struct Level {
 			File,
 		};
 
-		void render(Vector2 pos, float radius) const;
+		void render(Vector2 position, float radius, float theta) const;
 
 		Kind    kind;
 		Vector2 position;
 		i32     id = 0;
 
 		f64 time_since_pickup = -1; // If >=0, it's picked up.
-	};
-
-	struct Dialog {
-		std::string name;
-		std::string message;
 	};
 
 	Level() = delete;
@@ -97,10 +92,13 @@ struct Level {
 	u16         files_required;
 	f64         author_time;
 	Vector2     start_position;
-	float       start_angle;
+	f32         start_angle;
+	u32         on_unlock_dialog;
 
 	std::vector<Wall>                walls;
 	std::vector<Zone>                zones;
 	std::vector<Pickup>              pickups;
-	std::vector<std::vector<Dialog>> dialogs;
+
+	// Non-serialized
+	bool did_initial_dialog = false;
 };

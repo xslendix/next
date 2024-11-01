@@ -2,6 +2,8 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <cstdlib>
 
 #include <raylib.h>
 #include <raymath.h>
@@ -23,7 +25,7 @@ static constexpr auto INITIAL_SCREEN_HEIGHT = INITIAL_SCREEN_WIDTH;
 
 static void produce_frame(void);
 
-constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_POINT;
+constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_BILINEAR;
 
 void set_level(usize i, bool reset_dialog = false);
 
@@ -36,6 +38,7 @@ int main(void)
 		});
 		g_gs.menu_particle_speeds.push_back(GetRandomValue(500, 700));
 	}
+
 	try {
 		if (!std::filesystem::exists("resources")) {
 			std::filesystem::path currentPath = std::filesystem::current_path();
@@ -43,25 +46,25 @@ int main(void)
 			ChangeDirectory(parentPath.string().c_str());
 		}
 
+		SetRandomSeed(time(nullptr));
+
 		g_gs.palette = ColorPalette::generate();
-		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
-		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
-		// g_gs.current_level = 0;
-		// set_level(0);
+		for (int i = 0; i < 1; i++) {
+			g_gs.levels.push_back(Level::read_from_file(TextFormat(RESOURCES_PATH "Level%d.json", i)));
+		}
 
 #if !defined(_DEBUG)
 		SetTraceLogLevel(LOG_NONE);
 #endif
 
 #if !defined(PLATFORM_WEB)
-		SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+		SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
 #endif
 		InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
 
+		g_gs.spritesheet = LoadTexture("resources/spritesheet.png");
+		g_gs.read_dialogs_from_file("resources/Dialog.json");
 		g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 60, nullptr, 0);
-
-		g_gs.target = LoadRenderTexture(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT);
-		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
 
 #if defined(PLATFORM_WEB)
 		emscripten_set_main_loop(produce_frame, 60, 1);
@@ -70,8 +73,6 @@ int main(void)
 		while (!WindowShouldClose())
 			produce_frame();
 #endif
-
-		UnloadRenderTexture(g_gs.target);
 
 		CloseWindow();
 	} catch (std::exception &e) {
@@ -115,12 +116,6 @@ void set_level(usize i, bool reset_dialog)
 
 void produce_frame(void)
 {
-	if (IsWindowResized()) {
-		UnloadRenderTexture(g_gs.target);
-		g_gs.target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
-	}
-
 	double dt = GetFrameTime();
 
 	g_gs.time_spent += dt;
@@ -193,9 +188,24 @@ void produce_frame(void)
 		g_gs.camera.target.y = lerp(g_gs.camera.target.y, g_gs.player.position.y, dt * 4);
 		g_gs.camera.rotation
 		    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
+	} else {
+		g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
+		g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
+		if (g_gs.target_menu_scroll > 0)
+			g_gs.target_menu_scroll = 0;
+
+		for (auto &level : g_gs.levels) {
+			if (level.files_required < g_gs.total_collected_files)
+				continue;
+
+			auto &dialog = g_gs.dialogs[level.name];
+			if (!level.did_initial_dialog)
+				g_gs.current_dialog = &dialog;
+			level.did_initial_dialog = true;
+		}
 	}
 
-	BeginTextureMode(g_gs.target);
+	BeginDrawing();
 	{
 		if (g_gs.level()) {
 			ClearBackground(g_gs.palette.game_background);
@@ -263,6 +273,29 @@ void produce_frame(void)
 
 				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE);
 
+				if (level.files_required) {
+					constexpr auto FILE_ICON_SIZE = 15;
+					auto txt = TextFormat("%d/%d", 0, level.files_required);
+					auto sz = MeasureTextEx(g_gs.font, txt, FILE_ICON_SIZE * 2.5, 2);
+					auto file_pos = pos;
+					file_pos.y -= BUTTON_SIZE + FILE_ICON_SIZE * 2;
+					file_pos.x -= sz.x / 2 - FILE_ICON_SIZE * 0.5;
+					g_gs.render_texture({ file_pos.x - FILE_ICON_SIZE, file_pos.y }, 2, 0, FILE_ICON_SIZE, g_gs.palette.file);
+					file_pos.y -= sz.y / 2;
+					file_pos.x += BUTTON_SIZE / 4;
+					DrawTextEx(g_gs.font, txt, file_pos, FILE_ICON_SIZE * 2.5, 2, g_gs.palette.file);
+				}
+
+				if (!level.name.empty()) {
+					constexpr auto TEXT_SIZE = 10;
+					auto txt = level.name.c_str();
+					auto sz = MeasureTextEx(g_gs.font, txt, TEXT_SIZE * 2.5, 2);
+					auto file_pos = pos;
+					file_pos.y += BUTTON_SIZE + TEXT_SIZE;
+					file_pos.x -= sz.x / 2;
+					DrawTextEx(g_gs.font, txt, file_pos, TEXT_SIZE * 2.5, 2, g_gs.palette.file);
+				}
+
 				DrawCircleV(pos, BUTTON_SIZE, g_gs.palette.primary);
 				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH,
 				    in ? g_gs.palette.game_background : g_gs.palette.menu_background);
@@ -286,10 +319,10 @@ void produce_frame(void)
 		DrawFPS(20, 20);
 #endif
 	}
-	EndTextureMode();
-
-	BeginDrawing();
-	DrawTexturePro(g_gs.target.texture, { 0, 0, g_gs.widthf, -g_gs.heightf },
-	    { 0, 0, g_gs.widthf, g_gs.heightf }, { 0, 0 }, 0.0f, WHITE);
 	EndDrawing();
+
+	//BeginDrawing();
+	//DrawTexturePro(g_gs.target.texture, { 0, 0, g_gs.widthf, -g_gs.heightf },
+	//    { 0, 0, g_gs.widthf, g_gs.heightf }, { 0, 0 }, 0.0f, WHITE);
+	//EndDrawing();
 }

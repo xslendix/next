@@ -73,17 +73,6 @@ json Level::serialize(void)
 		j["pickups"].push_back(pickupj);
 	}
 
-	for (auto const &dialog : this->dialogs) {
-		json dialog_arr = json::array();
-		for (auto const &dialog : dialog) {
-			json dialogj;
-			dialogj["name"] = dialog.name;
-			dialogj["message"] = dialog.message;
-			dialog_arr.push_back(dialogj);
-		}
-		j["dialogs"].push_back(dialog_arr);
-	}
-
 	return j;
 }
 
@@ -148,27 +137,25 @@ Level Level::deserialize(nlohmann::json &data)
 		level.pickups.push_back(pickup);
 	}
 
-	for (auto &dialogj : data["dialogs"]) {
-		std::vector<Dialog> dialogs;
-		for (auto &dialog_entryj : dialogj) {
-			Dialog dialog;
-			dialog.name = dialog_entryj["name"];
-			dialog.message = dialog_entryj["message"];
-			dialogs.push_back(dialog);
-		}
-		level.dialogs.push_back(dialogs);
-	}
-
 	return level;
 }
 
-void Level::Pickup::render(Vector2 position, float radius) const
+void Level::Pickup::render(Vector2 position, float radius, float theta) const
 {
 	if (!radius)
 		return;
 	Color pickup_color
 	    = this->kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door : g_gs.palette.file;
-	DrawCircleV(position, radius, pickup_color);
+	int id;
+	switch (this->kind) {
+	case Kind::Key:
+		id = 1;
+		break;
+	case Kind::File:
+		id = 2;
+		break;
+	}
+	g_gs.render_texture(position, id, theta, radius, pickup_color);
 }
 
 void Level::render(Camera2D *camera, bool origin, bool render_player)
@@ -223,7 +210,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 				}
 			}
 
-			pickup.render(pickup.position, radius);
+			pickup.render(pickup.position, radius, 0);
 		}
 
 		if (render_player)
