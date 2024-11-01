@@ -22,6 +22,9 @@ struct GameState {
 	f64                completion_time;
 
 	std::vector<std::vector<Dialog>> *current_dialog = nullptr;
+	// I'm sorry if you're reading this...
+	usize current_dialog_idx, current_dialog_dialog_idx;
+	f32 dialog_box_y;
 
 	int collected_files, total_files;
 
@@ -69,6 +72,12 @@ struct GameState {
 		nlohmann::json j;
 		f >> j;
 		return deserialize_dialogs(j);
+	}
+
+	void show_dialog(std::string name, int idx) {
+		auto &dialog = this->dialogs[name];
+		this->current_dialog = &dialog;
+		this->dialog_box_y = this->heightf;
 	}
 };
 

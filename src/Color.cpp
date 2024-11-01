@@ -3,12 +3,13 @@
 #include <tuple>
 
 static float get_random_hue(void) {
-    int hue = GetRandomValue(0, 360);
-    // Avoid the orange, yellow, and green ranges
-    while ((hue >= 15 && hue <= 70) || (hue >= 85 && hue <= 150)) {
-        hue = GetRandomValue(0, 360);
-    }
-    return static_cast<float>(hue);
+    //int hue = GetRandomValue(0, 360);
+    //// Avoid the orange, yellow, and green ranges
+    //while ((hue >= 15 && hue <= 70) || (hue >= 85 && hue <= 150)) {
+    //    hue = GetRandomValue(0, 360);
+    //}
+    //return static_cast<float>(hue);
+	return static_cast<float>(GetRandomValue(188, 235));
 }
 
 static constexpr float fixed_saturation = 0.8f;
