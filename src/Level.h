@@ -91,9 +91,11 @@ struct Level {
 	}
 
 	void render(Camera2D *camera, bool origin = false, bool render_player = true);
+	void render_hud(f64 t);
 
 	std::string name;
 	u16         files_required;
+	f64         author_time;
 	Vector2     start_position;
 	float       start_angle;
 

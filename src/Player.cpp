@@ -33,19 +33,21 @@ void Player::update(double dt)
 	{ // Player controller
 		constexpr auto PLAYER_VELOCITY_ADDITION = PLAYER_SPEED;
 
-		if (IsKeyDown(KEY_UP)) {
-			this->velocity.x += std::cos(this->angle) * PLAYER_VELOCITY_ADDITION * dt;
-			this->velocity.y += std::sin(this->angle) * PLAYER_VELOCITY_ADDITION * dt;
-		}
-		if (IsKeyDown(KEY_DOWN)) {
-			this->velocity.x += std::cos(this->angle) * -PLAYER_VELOCITY_ADDITION * dt;
-			this->velocity.y += std::sin(this->angle) * -PLAYER_VELOCITY_ADDITION * dt;
-		}
-		if (IsKeyDown(KEY_LEFT)) {
-			this->angle -= PLAYER_TURNING_SPEED * dt;
-		}
-		if (IsKeyDown(KEY_RIGHT)) {
-			this->angle += PLAYER_TURNING_SPEED * dt;
+		if (!g_gs.completion_time) {
+			if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
+				this->velocity.x += std::cos(this->angle) * PLAYER_VELOCITY_ADDITION * dt;
+				this->velocity.y += std::sin(this->angle) * PLAYER_VELOCITY_ADDITION * dt;
+			}
+			if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {
+				this->velocity.x += std::cos(this->angle) * -PLAYER_VELOCITY_ADDITION * dt;
+				this->velocity.y += std::sin(this->angle) * -PLAYER_VELOCITY_ADDITION * dt;
+			}
+			if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
+				this->angle -= PLAYER_TURNING_SPEED * dt;
+			}
+			if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
+				this->angle += PLAYER_TURNING_SPEED * dt;
+			}
 		}
 
 		for (auto const &zone : g_gs.level()->zones) {
@@ -113,11 +115,14 @@ void Player::update(double dt)
 
 					Vector2 wall_normal = Vector2Normalize(Vector2Perpendicular(wall_dir));
 
-					if (Vector2DotProduct(Vector2Subtract(this->position, closest_point), wall_normal) < 0) {
+					if (Vector2DotProduct(
+					        Vector2Subtract(this->position, closest_point), wall_normal)
+					    < 0) {
 						wall_normal = Vector2Negate(wall_normal);
 					}
 
-					float angle_cos = Vector2DotProduct(Vector2Normalize(this->velocity), wall_normal);
+					float angle_cos
+					    = Vector2DotProduct(Vector2Normalize(this->velocity), wall_normal);
 					float angle_degrees = std::acos(angle_cos) * RAD2DEG;
 
 					float initial_speed = Vector2Length(this->velocity);
@@ -125,14 +130,16 @@ void Player::update(double dt)
 					constexpr float BOUNCE_ANGLE_THRESHOLD = 20.0f;
 					if (angle_degrees > BOUNCE_ANGLE_THRESHOLD) {
 						constexpr float bounce_factor = BOUNCE_SLOWDOWN;
-						this->velocity = Vector2Scale(Vector2Reflect(this->velocity, wall_normal), bounce_factor);
+						this->velocity = Vector2Scale(
+						    Vector2Reflect(this->velocity, wall_normal), bounce_factor);
 					} else {
 						Vector2 wall_tangent = Vector2Normalize(wall_dir);
 						this->velocity = Vector2Scale(wall_tangent, initial_speed);
 					}
 
 					float correction_offset = radius + 0.15f;
-					this->position = Vector2Add(closest_point, Vector2Scale(wall_normal, correction_offset));
+					this->position
+					    = Vector2Add(closest_point, Vector2Scale(wall_normal, correction_offset));
 				}
 			}
 		}

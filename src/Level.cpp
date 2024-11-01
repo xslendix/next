@@ -2,6 +2,9 @@
 
 #include "GameState.h"
 
+#include <raygui.h>
+#include <raylib.h>
+
 using json = nlohmann::json;
 
 Level::Level(std::string name, u16 files_required)
@@ -87,6 +90,7 @@ json Level::serialize(void)
 Level Level::deserialize(nlohmann::json &data)
 {
 	Level level(data["name"], data["files_required"].get<u16>());
+	level.author_time = data["author_time"];
 	level.start_position.x = data["start_position"][0];
 	level.start_position.y = data["start_position"][1];
 	level.start_angle = data["start_angle"];
@@ -158,11 +162,12 @@ Level Level::deserialize(nlohmann::json &data)
 	return level;
 }
 
-void Level::Pickup::render(Vector2 position, float radius) const {
+void Level::Pickup::render(Vector2 position, float radius) const
+{
 	if (!radius)
 		return;
-	Color pickup_color = this->kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door
-																 : g_gs.palette.file;
+	Color pickup_color
+	    = this->kind == Level::Pickup::Kind::Key ? g_gs.palette.key_door : g_gs.palette.file;
 	DrawCircleV(position, radius, pickup_color);
 }
 
@@ -209,7 +214,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 		}
 
 		for (auto const &pickup : this->pickups) {
-			auto  radius = PICKUP_RADIUS;
+			auto radius = PICKUP_RADIUS;
 			if (pickup.time_since_pickup != -1) {
 				if (pickup.time_since_pickup <= .3) {
 					radius *= (.3 - pickup.time_since_pickup) / .3;
@@ -225,4 +230,66 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 			g_gs.player.render();
 	}
 	EndMode2D();
+}
+
+float ease_out_lerp(float start, float end, float t)
+{
+	t = 1 - (1 - t) * (1 - t);
+	return start + t * (end - start);
+}
+
+float limit(float x, float min, float max)
+{
+	if (x < min)
+		return min;
+	if (x > max)
+		return max;
+	return x;
+}
+
+void Level::render_hud(f64 t)
+{
+	constexpr float WIDTH = 500;
+	constexpr float HEIGHT = 275;
+
+	float x = g_gs.widthf / 2 - WIDTH / 2;
+	float y = ease_out_lerp(g_gs.heightf, g_gs.heightf / 2 - HEIGHT / 2, limit(t, 0, 1));
+
+	DrawRectangle(x, y, WIDTH, HEIGHT, g_gs.palette.menu_background);
+	constexpr auto text = "LEVEL COMPLETE";
+	constexpr auto text_size = 40;
+
+	float start_x = x + WIDTH / 2 - MeasureText(" ", text_size) * 2.5 * strlen(text) * .5;
+	for (size_t i = 0; i < strlen(text); ++i) {
+		float char_x = start_x + i * MeasureText(" ", text_size) * 2.5;
+		float bounce_offset = sin(t * 3.0f + i * 0.3f) * 10.0f;
+		DrawText(TextSubtext(text, i, 1), char_x, y + text_size + bounce_offset, text_size,
+		    g_gs.palette.primary);
+	}
+
+	constexpr auto PADDING = 20;
+	constexpr auto FONT_SIZE = 20;
+	int            off = y + text_size * 2 + PADDING * 2;
+	if (t > .75) {
+		auto time = std::string(format_time(g_gs.completion_time));
+		DrawText(TextFormat("Completion time: %s", time.c_str()), x + PADDING, off, FONT_SIZE,
+		    g_gs.palette.primary);
+		off += FONT_SIZE + PADDING / 2;
+	}
+	if (t > 1) {
+		DrawText(TextFormat("Files collected: %d/%d", g_gs.collected_files, g_gs.total_files),
+		    x + PADDING, off, FONT_SIZE, g_gs.palette.primary);
+		off += FONT_SIZE + PADDING / 2;
+	}
+	if (t > 1.25) {
+		auto time = std::string(format_time(this->author_time));
+		DrawText(TextFormat("Author completion time: %s", time.c_str()), x + PADDING, off,
+		    FONT_SIZE, g_gs.palette.primary);
+		off += FONT_SIZE + PADDING / 2;
+	}
+	if (t > 1.5) {
+		if (GuiButton(
+		        { x + PADDING, static_cast<float>(off), WIDTH - PADDING * 2, 50 }, "Back to map"))
+			g_gs.current_level = {};
+	}
 }

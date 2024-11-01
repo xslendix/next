@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 
+#define RAYGUI_IMPLEMENTATION
+#define RAYGUI_NO_ICONS
+#include <raygui.h>
 #include <raylib.h>
 
 #include "common.h"
@@ -98,6 +101,7 @@ void set_level(usize i, bool reset_dialog)
 	g_gs.camera.rotation = -g_gs.player.angle * RAD2DEG - 90;
 
 	g_gs.time_spent = 0;
+	g_gs.completion_time = 0;
 }
 
 void produce_frame(void)
@@ -115,81 +119,136 @@ void produce_frame(void)
 	if (IsKeyPressed(KEY_R)) {
 		set_level(*g_gs.current_level);
 	}
+#ifdef _DEBUG
 	if (IsKeyPressed(KEY_P)) {
 		g_gs.palette = ColorPalette::generate();
 	}
+#endif
 
 	g_gs.width = GetScreenWidth();
 	g_gs.height = GetScreenHeight();
 	g_gs.widthf = static_cast<float>(g_gs.width);
 	g_gs.heightf = static_cast<float>(g_gs.height);
 
-	g_gs.player.update(dt);
+	GuiSetStyle(DEFAULT, BASE_COLOR_NORMAL, ColorToInt(g_gs.palette.menu_background));
+	GuiSetStyle(DEFAULT, BASE_COLOR_FOCUSED, ColorToInt(g_gs.palette.menu_background));
+	GuiSetStyle(DEFAULT, BASE_COLOR_PRESSED, ColorToInt(g_gs.palette.menu_background));
+	GuiSetStyle(DEFAULT, BASE_COLOR_DISABLED, ColorToInt(g_gs.palette.menu_background));
 
-	for (auto &pickup : g_gs.level()->pickups) {
-		if (pickup.time_since_pickup != -1) {
-			pickup.time_since_pickup += dt;
-		} else {
-			if (CheckCollisionCircles(
-			        g_gs.player.position, PLAYER_RADIUS, pickup.position, PICKUP_RADIUS)) {
-				pickup.time_since_pickup = 0;
-				g_gs.player.trail.push_back(
-				    Player::TrailPickup { &pickup, g_gs.player.get_next_trail_position() });
+	GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, TEXT_COLOR_FOCUSED, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, TEXT_COLOR_PRESSED, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, TEXT_COLOR_DISABLED, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, ColorToInt(g_gs.palette.primary));
+	GuiSetStyle(DEFAULT, BORDER_COLOR_DISABLED, ColorToInt(g_gs.palette.primary));
+
+	if (g_gs.level()) {
+		g_gs.player.update(dt);
+
+		for (auto &pickup : g_gs.level()->pickups) {
+			if (pickup.time_since_pickup != -1) {
+				pickup.time_since_pickup += dt;
+			} else {
+				if (CheckCollisionCircles(
+				        g_gs.player.position, PLAYER_RADIUS, pickup.position, PICKUP_RADIUS)) {
+					pickup.time_since_pickup = 0;
+					g_gs.player.trail.push_back(
+					    Player::TrailPickup { &pickup, g_gs.player.get_next_trail_position() });
+				}
 			}
 		}
-	}
 
-	bool in_danger = false;
-	for (auto &zone : g_gs.level()->zones) {
-		if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS, zone.points)) {
-			// TraceLog(LOG_INFO, "Colliding with zone");
-			if (!in_danger && zone.kind == Level::Zone::Kind::Danger) {
-				in_danger = true;
+		bool in_danger = false;
+		for (auto &zone : g_gs.level()->zones) {
+			if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS, zone.points)) {
+				// TraceLog(LOG_INFO, "Colliding with zone");
+				if (!in_danger && zone.kind == Level::Zone::Kind::Danger) {
+					in_danger = true;
+				} else if (zone.kind == Level::Zone::Kind::End) {
+					if (!g_gs.completion_time) {
+						g_gs.completion_time = g_gs.time_spent;
+						g_gs.collected_files = 0;
+						g_gs.total_files = 0;
+						for (auto &pickup : g_gs.level()->pickups) {
+							if (pickup.kind != Level::Pickup::Kind::File)
+								continue;
+							g_gs.total_files = 0;
+							g_gs.collected_files += pickup.time_since_pickup != -1;
+						}
+					}
+				}
 			}
 		}
+
+		if (in_danger)
+			g_gs.player.health -= dt;
+		else
+			g_gs.player.health += dt;
+
+		if (g_gs.player.health > PLAYER_MAX_HP)
+			g_gs.player.health = PLAYER_MAX_HP;
+		else if (g_gs.player.health < 0)
+			set_level(*g_gs.current_level);
+
+		g_gs.camera.offset.x = g_gs.widthf / 2.;
+		g_gs.camera.offset.y = g_gs.heightf / 2.;
+		g_gs.camera.target.x = lerp(g_gs.camera.target.x, g_gs.player.position.x, dt * 4);
+		g_gs.camera.target.y = lerp(g_gs.camera.target.y, g_gs.player.position.y, dt * 4);
+		g_gs.camera.rotation
+		    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
 	}
-
-	if (in_danger)
-		g_gs.player.health -= dt;
-	else
-		g_gs.player.health += dt;
-
-	if (g_gs.player.health > PLAYER_MAX_HP)
-		g_gs.player.health = PLAYER_MAX_HP;
-	else if (g_gs.player.health < 0)
-		set_level(*g_gs.current_level);
-
-	g_gs.camera.offset.x = g_gs.widthf / 2.;
-	g_gs.camera.offset.y = g_gs.heightf / 2.;
-	g_gs.camera.target.x = lerp(g_gs.camera.target.x, g_gs.player.position.x, dt * 4);
-	g_gs.camera.target.y = lerp(g_gs.camera.target.y, g_gs.player.position.y, dt * 4);
-	g_gs.camera.rotation
-	    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
 
 	BeginTextureMode(g_gs.target);
 	{
-		ClearBackground(g_gs.palette.game_background);
-
 		if (g_gs.level()) {
+			ClearBackground(g_gs.palette.game_background);
+
 			g_gs.level()->render(&g_gs.camera);
+			if (g_gs.player.health != PLAYER_MAX_HP) {
+				constexpr auto BAR_WIDTH = 30.f;
+				Vector2        hp_position = {
+                    static_cast<float>(g_gs.widthf / 2),
+                    static_cast<float>(g_gs.heightf * 0.8),
+				};
+				Vector2 left = { hp_position.x - BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP),
+					hp_position.y };
+				Vector2 right = { hp_position.x + BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP),
+					hp_position.y };
+				DrawLineEx(left, right, 3, g_gs.palette.primary);
+			}
+
+			if (g_gs.completion_time)
+				g_gs.level()->render_hud(g_gs.time_spent - g_gs.completion_time);
+			else {
+				auto text = format_time(g_gs.time_spent);
+				int  w = MeasureText(text, 40);
+				DrawText(text, g_gs.widthf / 2 - w / 2, 20, 40, g_gs.palette.primary);
+			}
+		} else {
+			ClearBackground(g_gs.palette.menu_background);
+
+			float t = 0;
+			int   i = 1;
+
+			constexpr auto HEIGHT = 60;
+			constexpr auto BUTTON_SIZE = 30;
+			constexpr auto PADDING = 20;
+			for (auto const &level : g_gs.levels) {
+				auto offy = std::sin(t) * HEIGHT;
+				auto x = PADDING + g_gs.menu_scroll + (i - 1) * BUTTON_SIZE * 3;
+
+				if (GuiLabelButton({})) { }
+
+				t += PI;
+				i++;
+			}
 		}
 
-		if (g_gs.player.health != PLAYER_MAX_HP) {
-			constexpr auto BAR_WIDTH = 30.f;
-			Vector2 hp_position = {
-				static_cast<float>(g_gs.widthf / 2),
-				static_cast<float>(g_gs.heightf * 0.8),
-			};
-			Vector2 left = { hp_position.x - BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };
-			Vector2 right = { hp_position.x + BAR_WIDTH * (g_gs.player.health / PLAYER_MAX_HP), hp_position.y };
-			DrawLineEx(left, right, 3, g_gs.palette.primary);
-		}
-
-		DrawFPS(20, 60);
-		DrawText(TextFormat("%02d:%02d:%02d", static_cast<int>(g_gs.time_spent / 60) % 60,
-		             static_cast<int>(g_gs.time_spent) % 60,
-		             static_cast<int>(g_gs.time_spent * 100) % 100),
-		    20, 20, 20, g_gs.palette.primary);
+#ifdef _DEBUG
+		DrawFPS(20, 20);
+#endif
 	}
 	EndTextureMode();
 

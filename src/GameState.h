@@ -13,6 +13,11 @@ struct GameState {
 	std::vector<Level> levels;
 	Player             player;
 	f64                time_spent;
+	f64                completion_time;
+
+	int collected_files, total_files;
+
+	int total_collected_files = 0;
 
 	ColorPalette palette;
 
@@ -36,3 +41,9 @@ struct GameState {
 };
 
 extern GameState g_gs;
+
+static char const *format_time(f64 time)
+{
+	return TextFormat("%02d:%02d:%02d", static_cast<int>(time / 60) % 60,
+	    static_cast<int>(time) % 60, static_cast<int>(time * 100) % 100);
+}

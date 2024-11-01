@@ -30,6 +30,7 @@ ColorPalette ColorPalette::generate(void)
 	std::tie(p.primary, p.menu_background)
 	    = get_random_colors(.8, .3); // More contrast in brightness
 	std::tie(p.wall, p.game_background) = get_random_colors(.7, .4); // Different contrast level
+	p.menu_background = ColorBrightness(p.game_background, -.6);
 
 	// Specific colors with contrasting hues
 	p.key_door
