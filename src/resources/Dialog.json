@@ -21,6 +21,16 @@
         "name": "Byte",
         "msg": "I am sure you have questions but we don't have time. Go!"
       } 
+    ],
+    [
+      {
+        "name": "Byte",
+        "msg": "See that key?"
+      },
+      {
+        "name": "Byte",
+        "msg": "Grab it. You may need it."
+      }
     ]
   ]
 }

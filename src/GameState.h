@@ -78,6 +78,8 @@ struct GameState {
 		auto &dialog = this->dialogs[name];
 		this->current_dialog = &dialog;
 		this->dialog_box_y = this->heightf;
+		this->current_dialog_idx = idx;
+		this->current_dialog_dialog_idx = 0;
 	}
 };
 

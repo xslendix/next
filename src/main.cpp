@@ -95,7 +95,7 @@ void set_level(usize i, bool reset_dialog)
 		wall.time_since_trigger = -1;
 	}
 	for (auto &zone : lvl.zones) {
-		if (!reset_dialog && zone.kind != Level::Zone::Kind::DialogTrigger)
+		if (reset_dialog)
 			zone.time_since_trigger = -1;
 	}
 	for (auto &pickup : lvl.pickups) {
@@ -121,7 +121,7 @@ void produce_frame(void)
 	double dt = GetFrameTime();
 
 	if (IsKeyPressed(KEY_R)) {
-		set_level(*g_gs.current_level);
+		set_level(*g_gs.current_level, false);
 	}
 #ifdef _DEBUG
 	if (IsKeyPressed(KEY_P)) {
@@ -169,6 +169,17 @@ void produce_frame(void)
 							g_gs.collected_files += pickup.time_since_pickup != -1;
 						}
 					}
+				} else if (zone.kind == Level::Zone::Kind::DialogTrigger) {
+					if (zone.time_since_trigger == -1) {
+						zone.time_since_trigger = 0;
+						g_gs.show_dialog(g_gs.level()->name, zone.value.dialog_index);
+					}
+				}
+			}
+
+			if (zone.kind == Level::Zone::Kind::DialogTrigger) {
+				if (zone.time_since_trigger != -1) {
+					zone.time_since_trigger += dt;
 				}
 			}
 		}
@@ -181,7 +192,7 @@ void produce_frame(void)
 		if (g_gs.player.health > PLAYER_MAX_HP)
 			g_gs.player.health = PLAYER_MAX_HP;
 		else if (g_gs.player.health < 0)
-			set_level(*g_gs.current_level);
+			set_level(*g_gs.current_level, false);
 
 		g_gs.camera.offset.x = g_gs.widthf / 2.;
 		g_gs.camera.offset.y = g_gs.heightf / 2.;
@@ -308,7 +319,7 @@ void produce_frame(void)
 				    FONT_SIZE, 2, g_gs.palette.primary);
 
 				if (IsMouseButtonPressed(0) && in) {
-					set_level(i - 1);
+					set_level(i - 1, true);
 				}
 
 				t += PI / 2;
