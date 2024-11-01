@@ -222,7 +222,7 @@ void produce_frame(void)
 			int   i = 1;
 
 			constexpr auto HEIGHT = 60;
-			constexpr auto BUTTON_SIZE = 30;
+			constexpr auto BUTTON_SIZE = 50;
 			constexpr auto PADDING = 20;
 			constexpr auto FONT_SIZE = BUTTON_SIZE * .95;
 
@@ -241,8 +241,11 @@ void produce_frame(void)
 				}
 				prev = pos;
 
+				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE);
+
 				DrawCircleV(pos, BUTTON_SIZE, g_gs.palette.primary);
-				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH, g_gs.palette.menu_background);
+				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH,
+				    in ? g_gs.palette.game_background : g_gs.palette.menu_background);
 
 				auto txt = TextFormat("%d", i);
 				auto w = MeasureTextEx(g_gs.font, txt, FONT_SIZE, 2).x;
@@ -250,8 +253,7 @@ void produce_frame(void)
 				DrawTextEx(g_gs.font, txt, { x - w / 2, static_cast<float>(y - FONT_SIZE / 2) },
 				    FONT_SIZE, 2, g_gs.palette.primary);
 
-				if (IsMouseButtonPressed(0)
-				    && CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE)) {
+				if (IsMouseButtonPressed(0) && in) {
 					set_level(i - 1);
 				}
 
