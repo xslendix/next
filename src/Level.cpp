@@ -1,8 +1,8 @@
 #include "Level.h"
 
 #include "GameState.h"
+#include "Gui.h"
 
-#include <raygui.h>
 #include <raylib.h>
 
 using json = nlohmann::json;

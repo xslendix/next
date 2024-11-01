@@ -29,8 +29,11 @@ struct GameState {
 	f32 widthf;
 	f32 heightf;
 
+	f32 menu_scroll = 0;
+
 	RenderTexture2D target {};
 	Camera2D        camera {};
+	Font            font;
 
 	Level *level()
 	{

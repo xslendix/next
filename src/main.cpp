@@ -3,15 +3,13 @@
 #include <iostream>
 #include <string>
 
-#define RAYGUI_IMPLEMENTATION
-#define RAYGUI_NO_ICONS
-#include <raygui.h>
 #include <raylib.h>
 
 #include "common.h"
 
 #include "GameMath.h"
 #include "GameState.h"
+#include "Gui.h"
 #include "Player.h"
 
 #if defined(PLATFORM_WEB)
@@ -39,8 +37,8 @@ int main(void)
 
 		g_gs.palette = ColorPalette::generate();
 		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
-		g_gs.current_level = 0;
-		set_level(0);
+		// g_gs.current_level = 0;
+		// set_level(0);
 
 #if !defined(_DEBUG)
 		SetTraceLogLevel(LOG_NONE);
@@ -50,6 +48,8 @@ int main(void)
 		SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 #endif
 		InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
+
+		g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 50, nullptr, 0);
 
 		g_gs.target = LoadRenderTexture(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT);
 		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);
@@ -130,20 +130,6 @@ void produce_frame(void)
 	g_gs.widthf = static_cast<float>(g_gs.width);
 	g_gs.heightf = static_cast<float>(g_gs.height);
 
-	GuiSetStyle(DEFAULT, BASE_COLOR_NORMAL, ColorToInt(g_gs.palette.menu_background));
-	GuiSetStyle(DEFAULT, BASE_COLOR_FOCUSED, ColorToInt(g_gs.palette.menu_background));
-	GuiSetStyle(DEFAULT, BASE_COLOR_PRESSED, ColorToInt(g_gs.palette.menu_background));
-	GuiSetStyle(DEFAULT, BASE_COLOR_DISABLED, ColorToInt(g_gs.palette.menu_background));
-
-	GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, TEXT_COLOR_FOCUSED, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, TEXT_COLOR_PRESSED, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, TEXT_COLOR_DISABLED, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, ColorToInt(g_gs.palette.primary));
-	GuiSetStyle(DEFAULT, BORDER_COLOR_DISABLED, ColorToInt(g_gs.palette.primary));
-
 	if (g_gs.level()) {
 		g_gs.player.update(dt);
 
@@ -223,8 +209,9 @@ void produce_frame(void)
 				g_gs.level()->render_hud(g_gs.time_spent - g_gs.completion_time);
 			else {
 				auto text = format_time(g_gs.time_spent);
-				int  w = MeasureText(text, 40);
-				DrawText(text, g_gs.widthf / 2 - w / 2, 20, 40, g_gs.palette.primary);
+				int  w = MeasureTextEx(g_gs.font, text, 40, 3).x;
+				DrawTextEx(
+				    g_gs.font, text, { g_gs.widthf / 2 - w / 2, 20 }, 40, 3, g_gs.palette.primary);
 			}
 		} else {
 			ClearBackground(g_gs.palette.menu_background);
@@ -235,11 +222,27 @@ void produce_frame(void)
 			constexpr auto HEIGHT = 60;
 			constexpr auto BUTTON_SIZE = 30;
 			constexpr auto PADDING = 20;
-			for (auto const &level : g_gs.levels) {
-				auto offy = std::sin(t) * HEIGHT;
-				auto x = PADDING + g_gs.menu_scroll + (i - 1) * BUTTON_SIZE * 3;
+			constexpr auto FONT_SIZE = BUTTON_SIZE * .95;
 
-				if (GuiLabelButton({})) { }
+			for (auto const &level : g_gs.levels) {
+				auto    offy = std::sin(t) * HEIGHT;
+				auto    x = PADDING + g_gs.menu_scroll + i * BUTTON_SIZE * 3;
+				auto    y = g_gs.heightf / 2 - offy;
+				Vector2 pos { x, y };
+
+				DrawCircleV(pos, BUTTON_SIZE, g_gs.palette.primary);
+				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH, g_gs.palette.menu_background);
+
+				auto txt = TextFormat("%d", i);
+				auto w = MeasureTextEx(g_gs.font, txt, FONT_SIZE, 2).x;
+
+				DrawTextEx(g_gs.font, txt, { x - w / 2, static_cast<float>(y - FONT_SIZE / 2) },
+				    FONT_SIZE, 2, g_gs.palette.primary);
+
+				if (IsMouseButtonPressed(0)
+				    && CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE)) {
+					set_level(i - 1);
+				}
 
 				t += PI;
 				i++;

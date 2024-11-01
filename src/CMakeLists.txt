@@ -8,6 +8,7 @@ endif()
 
 set(SOURCES
 	Color.cpp
+	Gui.cpp
 	GameMath.cpp
 	Player.cpp
 	Level.cpp
