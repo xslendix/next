@@ -4,6 +4,7 @@
 #include <string>
 
 #include <raylib.h>
+#include <raymath.h>
 
 #include "common.h"
 
@@ -36,6 +37,7 @@ int main(void)
 		}
 
 		g_gs.palette = ColorPalette::generate();
+		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
 		g_gs.levels.push_back(Level::read_from_file(RESOURCES_PATH "Level.json"));
 		// g_gs.current_level = 0;
 		// set_level(0);
@@ -224,11 +226,20 @@ void produce_frame(void)
 			constexpr auto PADDING = 20;
 			constexpr auto FONT_SIZE = BUTTON_SIZE * .95;
 
+			Vector2 prev;
 			for (auto const &level : g_gs.levels) {
 				auto    offy = std::sin(t) * HEIGHT;
 				auto    x = PADDING + g_gs.menu_scroll + i * BUTTON_SIZE * 3;
-				auto    y = g_gs.heightf / 2 - offy;
+				auto    y = g_gs.heightf / 2 + offy;
 				Vector2 pos { x, y };
+
+				if (i != 1) {
+					auto    diff = Vector2Subtract(pos, prev);
+					auto    offset = Vector2Scale(Vector2Normalize(diff), BUTTON_SIZE);
+					Vector2 line_start = Vector2Add(prev, offset);
+					DrawLineEx(line_start, pos, 3, g_gs.palette.primary);
+				}
+				prev = pos;
 
 				DrawCircleV(pos, BUTTON_SIZE, g_gs.palette.primary);
 				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH, g_gs.palette.menu_background);
@@ -244,7 +255,7 @@ void produce_frame(void)
 					set_level(i - 1);
 				}
 
-				t += PI;
+				t += PI / 2;
 				i++;
 			}
 		}

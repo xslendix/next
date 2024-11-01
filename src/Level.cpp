@@ -255,6 +255,8 @@ void Level::render_hud(f64 t)
 	float x = g_gs.widthf / 2 - WIDTH / 2;
 	float y = ease_out_lerp(g_gs.heightf, g_gs.heightf / 2 - HEIGHT / 2, limit(t, 0, 1));
 
+	DrawRectangle(x - BORDER_WIDTH, y - BORDER_WIDTH, WIDTH + BORDER_WIDTH * 2,
+	    HEIGHT + BORDER_WIDTH * 2, g_gs.palette.primary);
 	DrawRectangle(x, y, WIDTH, HEIGHT, g_gs.palette.menu_background);
 	constexpr auto text = "LEVEL COMPLETE";
 	constexpr auto text_size = 40;
