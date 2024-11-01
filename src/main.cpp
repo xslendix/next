@@ -162,7 +162,7 @@ void produce_frame(void)
 						for (auto &pickup : g_gs.level()->pickups) {
 							if (pickup.kind != Level::Pickup::Kind::File)
 								continue;
-							g_gs.total_files = 0;
+							g_gs.total_files++;
 							g_gs.collected_files += pickup.time_since_pickup != -1;
 						}
 					}
