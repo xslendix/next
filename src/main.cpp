@@ -51,7 +51,7 @@ int main(void)
 #endif
 		InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
 
-		g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 50, nullptr, 0);
+		g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 60, nullptr, 0);
 
 		g_gs.target = LoadRenderTexture(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT);
 		SetTextureFilter(g_gs.target.texture, TEXTURE_FILTER);

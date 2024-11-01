@@ -250,7 +250,7 @@ float limit(float x, float min, float max)
 void Level::render_hud(f64 t)
 {
 	constexpr float WIDTH = 500;
-	constexpr float HEIGHT = 275;
+	constexpr float HEIGHT = 320;
 
 	float x = g_gs.widthf / 2 - WIDTH / 2;
 	float y = ease_out_lerp(g_gs.heightf, g_gs.heightf / 2 - HEIGHT / 2, limit(t, 0, 1));
@@ -258,37 +258,41 @@ void Level::render_hud(f64 t)
 	DrawRectangle(x - BORDER_WIDTH, y - BORDER_WIDTH, WIDTH + BORDER_WIDTH * 2,
 	    HEIGHT + BORDER_WIDTH * 2, g_gs.palette.primary);
 	DrawRectangle(x, y, WIDTH, HEIGHT, g_gs.palette.menu_background);
-	constexpr auto text = "LEVEL COMPLETE";
+	constexpr auto text = "DATA SENT";
 	constexpr auto text_size = 40;
 
-	float start_x = x + WIDTH / 2 - MeasureText(" ", text_size) * 2.5 * strlen(text) * .5;
+	float start_x = x + WIDTH / 2
+	    - MeasureTextEx(g_gs.font, " ", text_size * 2, 0).x * 1.5 * (strlen(text) - 1) * .5 - 15;
 	for (size_t i = 0; i < strlen(text); ++i) {
-		float char_x = start_x + i * MeasureText(" ", text_size) * 2.5;
-		float bounce_offset = sin(t * 3.0f + i * 0.3f) * 10.0f;
-		DrawText(TextSubtext(text, i, 1), char_x, y + text_size + bounce_offset, text_size,
-		    g_gs.palette.primary);
+		float char_x = start_x + i * MeasureTextEx(g_gs.font, " ", text_size * 2, 0).x * 1.5;
+		float bounce_offset = sin(t * 3.0f + i * 0.3f) * 10.0f - 15;
+		DrawTextEx(g_gs.font, TextSubtext(text, i, 1), { char_x, y + text_size + bounce_offset },
+		    text_size * 2, 0, g_gs.palette.primary);
 	}
 
 	constexpr auto PADDING = 20;
-	constexpr auto FONT_SIZE = 20;
-	int            off = y + text_size * 2 + PADDING * 2;
+	constexpr auto FONT_SIZE = 30;
+	constexpr auto FONT_SPACING = 2;
+	float          off = y + text_size * 2 + PADDING * 2;
 	if (t > .75) {
 		auto time = std::string(format_time(g_gs.completion_time));
-		DrawText(TextFormat("Completion time: %s", time.c_str()), x + PADDING, off, FONT_SIZE,
-		    g_gs.palette.primary);
-		off += FONT_SIZE + PADDING / 2;
+		DrawTextEx(g_gs.font, TextFormat("Completion time: %s", time.c_str()), { x + PADDING, off },
+		    FONT_SIZE, FONT_SPACING, g_gs.palette.primary);
+		off += FONT_SIZE * .75 + PADDING / 2;
 	}
 	if (t > 1) {
-		DrawText(TextFormat("Files collected: %d/%d", g_gs.collected_files, g_gs.total_files),
-		    x + PADDING, off, FONT_SIZE, g_gs.palette.primary);
-		off += FONT_SIZE + PADDING / 2;
+		DrawTextEx(g_gs.font,
+		    TextFormat("Files collected: %d/%d", g_gs.collected_files, g_gs.total_files),
+		    { x + PADDING, off }, FONT_SIZE, FONT_SPACING, g_gs.palette.primary);
+		off += FONT_SIZE * .75 + PADDING / 2;
 	}
 	if (t > 1.25) {
 		auto time = std::string(format_time(this->author_time));
-		DrawText(TextFormat("Author completion time: %s", time.c_str()), x + PADDING, off,
-		    FONT_SIZE, g_gs.palette.primary);
-		off += FONT_SIZE + PADDING / 2;
+		DrawTextEx(g_gs.font, TextFormat("Author completion time: %s", time.c_str()),
+		    { x + PADDING, off }, FONT_SIZE, FONT_SPACING, g_gs.palette.primary);
+		off += FONT_SIZE * .75 + PADDING / 2;
 	}
+	off += FONT_SIZE * .75 + PADDING / 2;
 	if (t > 1.5) {
 		if (GuiButton(
 		        { x + PADDING, static_cast<float>(off), WIDTH - PADDING * 2, 50 }, "Back to map"))
