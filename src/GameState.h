@@ -31,6 +31,9 @@ struct GameState {
 
 	f32 menu_scroll = 0;
 
+	std::vector<Vector2> menu_particles;
+	std::vector<float>   menu_particle_speeds;
+
 	RenderTexture2D target {};
 	Camera2D        camera {};
 	Font            font;

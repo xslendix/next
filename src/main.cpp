@@ -29,6 +29,13 @@ void set_level(usize i, bool reset_dialog = false);
 
 int main(void)
 {
+	for (usize i = 0; i < 800; i++) {
+		g_gs.menu_particles.push_back({
+		    static_cast<float>(GetRandomValue(0, INITIAL_SCREEN_WIDTH)),
+		    static_cast<float>(GetRandomValue(0, INITIAL_SCREEN_HEIGHT)),
+		});
+		g_gs.menu_particle_speeds.push_back(GetRandomValue(500, 700));
+	}
 	try {
 		if (!std::filesystem::exists("resources")) {
 			std::filesystem::path currentPath = std::filesystem::current_path();
@@ -225,6 +232,19 @@ void produce_frame(void)
 			constexpr auto BUTTON_SIZE = 50;
 			constexpr auto PADDING = 20;
 			constexpr auto FONT_SIZE = BUTTON_SIZE * .95;
+
+			usize i2 = 0;
+			for (auto &particle : g_gs.menu_particles) {
+				particle.x -= dt * g_gs.menu_particle_speeds[i2];
+				if (particle.x < 0) {
+					particle.x = g_gs.widthf + particle.x;
+					particle.y = static_cast<float>(GetRandomValue(0, g_gs.heightf));
+					g_gs.menu_particle_speeds[i2] = GetRandomValue(500, 700);
+				}
+
+				DrawRectangle(particle.x, particle.y, 20, 2, g_gs.palette.game_background);
+				i2++;
+			}
 
 			Vector2 prev;
 			for (auto const &level : g_gs.levels) {

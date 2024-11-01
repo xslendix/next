@@ -14,11 +14,10 @@ static float get_random_value(float min, float max)
 	    / 100.0f;
 }
 
-static std::pair<Color, Color> get_random_colors(float v1 = .7, float v2 = .3)
+static std::pair<Color, Color> get_random_colors(float hue, float v1 = .7, float v2 = .3)
 {
-	float hue = get_random_hue();
-	auto  c1 = ColorFromHSV(hue, get_random_saturation(), v1);
-	auto  c2 = ColorFromHSV(hue, get_random_saturation(), v2);
+	auto c1 = ColorFromHSV(hue, get_random_saturation(), v1);
+	auto c2 = ColorFromHSV(hue, get_random_saturation(), v2);
 	c1.a = 0xff;
 	c2.a = 0xff;
 	return { c1, c2 };
@@ -27,12 +26,15 @@ static std::pair<Color, Color> get_random_colors(float v1 = .7, float v2 = .3)
 ColorPalette ColorPalette::generate(void)
 {
 	ColorPalette p;
-	std::tie(p.primary, p.menu_background)
-	    = get_random_colors(.8, .3); // More contrast in brightness
-	std::tie(p.wall, p.game_background) = get_random_colors(.7, .4); // Different contrast level
+	float bg_hue = get_random_hue();
+	std::tie(p.wall, p.game_background) = get_random_colors(bg_hue, .7, .4);
+
+	float primary_hue = fmod(bg_hue + 180.0f, 360.0f); // opposite hue
+	p.primary = ColorFromHSV(primary_hue, get_random_saturation(), 0.75f);
+	p.primary.a = 0xff;
+
 	p.menu_background = ColorBrightness(p.game_background, -.6);
 
-	// Specific colors with contrasting hues
 	p.key_door
 	    = ColorFromHSV(GetRandomValue(35, 57), get_random_saturation(), get_random_value(.8, .9));
 	p.file
