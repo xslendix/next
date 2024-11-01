@@ -171,7 +171,6 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 			case Zone::Kind::End:
 			case Zone::Kind::DialogTrigger:
 				col = { 0, 0, 0, 0 };
-			col = DARKGREEN;
 				break;
 			case Zone::Kind::OneWay:
 				col = g_gs.palette.one_way_zone_background;
