@@ -36,6 +36,15 @@ class LevelEditor:
 		self.canvas.bind("<B3-Motion>", self.on_pan_canvas)
 		self.canvas.bind("<ButtonRelease-1>", self.on_mouse_release)
 
+		self.canvas.bind('<Key-1>', lambda event: self.add_point_before())
+		self.canvas.bind('<Key-2>', lambda event: self.add_point_after())
+		self.canvas.bind('<Key-d>', lambda event: self.remove_point())
+		self.canvas.bind('<Key-g>', lambda event: self.set_grid_size())
+		self.canvas.bind('<Key-t>', lambda event: self.toggle_grid())
+		self.canvas.bind('<Key-w>', lambda event: self.add_wall())
+		self.canvas.bind('<Key-z>', lambda event: self.add_zone())
+		self.canvas.bind('<Key-c>', lambda event: self.add_pickup())
+
 		file_frame = tk.Frame(master)
 		file_frame.pack(side=tk.LEFT, anchor="w", padx=5, pady=5)
 
@@ -71,6 +80,9 @@ class LevelEditor:
 		tk.Button(edit_properties_frame, text="Edit Pickup ID", command=self.edit_pickup_id).pack(side=tk.TOP, fill=tk.X)
 
 		self.draw_level()
+
+
+		self.canvas.focus_set()  # Add this line in __init__
 
 	def edit_zone_kind(self):
 		if self.selected_zone is not None:
@@ -194,8 +206,8 @@ class LevelEditor:
 		x, y = self.level_data["start_position"]
 		angle = self.level_data["start_angle"]
 		self.canvas.create_oval(x - 5 + self.offset_x, y - 5 + self.offset_y, 
-		                        x + 5 + self.offset_x, y + 5 + self.offset_y, 
-		                        fill="blue", outline="black", tags=("start", "movable"))
+								x + 5 + self.offset_x, y + 5 + self.offset_y, 
+								fill="blue", outline="black", tags=("start", "movable"))
 		line_length = 20
 		end_x = x + line_length * math.cos(math.radians(angle))
 		end_y = y + line_length * math.sin(math.radians(angle))
@@ -229,16 +241,12 @@ class LevelEditor:
 		click_x, click_y = event.x - self.offset_x, event.y - self.offset_y
 		if abs(click_x - start_x) < 10 and abs(click_y - start_y) < 10:
 			self.selected_point_index = "start_position"
-			print("Selected Start Position")
 		elif any("pickup" in tag for tag in tags):	
 			self.selected_pickup = int(tags[0].split("_")[1])
-			print("Selected Pickup:", self.selected_pickup)
 		elif any("wall_point" in tag for tag in tags):
 			self.selected_wall, self.selected_point_index = self.extract_index(tags)
-			print("Selected Wall:", self.selected_wall, "Point Index:", self.selected_point_index)
 		elif any("zone_point" in tag for tag in tags):
 			self.selected_zone, self.selected_point_index = self.extract_index(tags)
-			print("Selected Zone:", self.selected_zone, "Point Index:", self.selected_point_index)
 		else:
 			print("Nothing selected")
 
@@ -278,18 +286,18 @@ class LevelEditor:
 			self.draw_level()
 
 	def add_pickup(self):
-		new_x, new_y = self.level_data["start_position"]
+		new_x, new_y = 10, 10
 		pickup_id = len(self.level_data["pickups"])
 		self.level_data["pickups"].append({"kind": 0, "id": pickup_id, "x": new_x, "y": new_y})
 		self.draw_level()
 
 	def add_wall(self):
-		start_x, start_y = self.level_data["start_position"]
+		start_x, start_y = 10, 10
 		self.level_data["walls"].append({"kind": 0, "points": [[start_x, start_y], [start_x + 50, start_y + 50]], "key_id": 0})
 		self.draw_level()
 
 	def add_zone(self):
-		start_x, start_y = self.level_data["start_position"]
+		start_x, start_y = 10, 10
 		self.level_data["zones"].append({"kind": 0, "points": [[start_x, start_y], [start_x + 50, start_y], [start_x + 50, start_y + 50], [start_x, start_y + 50]], "value": 0})
 		self.draw_level()
 

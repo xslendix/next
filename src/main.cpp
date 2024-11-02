@@ -175,13 +175,13 @@ void set_level(usize i, bool reset_dialog)
 
 void produce_frame(void)
 {
-	//if (!IsMusicStreamPlaying(g_gs.music[g_gs.current_song])) {
-	//	StopMusicStream(g_gs.music[g_gs.current_song]);
-	//	g_gs.current_song++;
-	//	g_gs.current_song %= g_gs.music.size();
-	//	SeekMusicStream(g_gs.music[g_gs.current_song], 0);
-	//	PlayMusicStream(g_gs.music[g_gs.current_song]);
-	//}
+	if (!IsMusicStreamPlaying(g_gs.music[g_gs.current_song])) {
+		StopMusicStream(g_gs.music[g_gs.current_song]);
+		g_gs.current_song++;
+		g_gs.current_song %= g_gs.music.size();
+		SeekMusicStream(g_gs.music[g_gs.current_song], 0);
+		PlayMusicStream(g_gs.music[g_gs.current_song]);
+	}
 	UpdateMusicStream(g_gs.music[g_gs.current_song]);
 
 	double dt = GetFrameTime();
