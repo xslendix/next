@@ -277,10 +277,12 @@ void produce_frame(void)
 		g_gs.camera.rotation
 		    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
 	} else {
-		g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
-		g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
-		if (g_gs.target_menu_scroll > 0)
-			g_gs.target_menu_scroll = 0;
+		if (!g_gs.current_dialog) {
+			g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
+			g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
+			if (g_gs.target_menu_scroll > 0)
+				g_gs.target_menu_scroll = 0;
+		}
 
 		for (auto &level : g_gs.levels) {
 			if (level.files_required < g_gs.total_collected_files)
@@ -366,7 +368,7 @@ void produce_frame(void)
 				}
 				prev = pos;
 
-				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE);
+				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE) && !g_gs.current_dialog;
 
 				bool has_files = g_gs.total_collected_files >= level.files_required;
 				if (level.files_required && !has_files) {
