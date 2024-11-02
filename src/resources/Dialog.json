@@ -37,7 +37,7 @@
     [
       {
         "name": "Byte",
-        "msg": "Wait!"
+        "msg": "Wait! That's a firewall!"
       },
       {
         "name": "Byte",
@@ -45,7 +45,21 @@
       },
       {
         "name": "Byte",
-        "msg": "If you no longer have any power, you will terminate."
+        "msg": "If you no longer have any power, you will terminate and lose connection."
+      }
+    ]
+  ],
+  "gateway1.omnitek.co": [
+    [
+      {
+        "name": "Byte",
+        "msg": "You're doing great. Each file brings you closer to the core of the network."
+      }
+    ],
+    [
+      {
+        "name": "Byte",
+        "msg": "Watch out for firewalls in this area. They have more control here."
       }
     ]
   ]

@@ -14,7 +14,7 @@ class LevelEditor:
 			"pickups": [],
 			"walls": [],
 			"zones": [],
-			"on_unlock_dialog": 0,
+			"on_unlock_dialog": -1,
 		}
 
 		self.master = master

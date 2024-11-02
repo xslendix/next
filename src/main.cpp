@@ -1,4 +1,6 @@
 #include <cmath>
+#include <complex>
+#include <vector>
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
@@ -32,18 +34,89 @@ void set_level(usize i, bool reset_dialog = false);
 static void DrawTextBoxed(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint);
 static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);
 
-void low_pass_filter_cb(void *buffer, unsigned int frames) {
-	if (!g_gs.current_dialog) return;
-    float *samples = (float *)buffer;
-    static float prevSampleLeft = 0.0f;
-    static float prevSampleRight = 0.0f;
-    float alpha = 0.05f;
+float scaling_factor = 20.0f;
 
-    for (unsigned int i = 0; i < frames * 2; i += 2) {
-        samples[i] = prevSampleLeft + alpha * (samples[i] - prevSampleLeft);
-        prevSampleLeft = samples[i];
-        samples[i + 1] = prevSampleRight + alpha * (samples[i + 1] - prevSampleRight);
-        prevSampleRight = samples[i + 1];
+void fft(std::vector<std::complex<double>>& data) {
+    const size_t N = data.size();
+    if (N <= 1) return;
+
+    std::vector<std::complex<double>> even(N / 2);
+    std::vector<std::complex<double>> odd(N / 2);
+    
+    for (size_t i = 0; i < N / 2; ++i) {
+        even[i] = data[i * 2];
+        odd[i] = data[i * 2 + 1];
+    }
+
+    fft(even);
+    fft(odd);
+
+    for (size_t k = 0; k < N / 2; ++k) {
+        std::complex<double> t = std::polar(1.0, -2.0 * PI * k / N) * odd[k];
+        data[k] = even[k] + t;
+        data[k + N / 2] = even[k] - t;
+    }
+}
+
+std::vector<double> perform_fft(const std::vector<double>& real_data) {
+    size_t N = real_data.size();
+    size_t power_of_two = 1;
+    while (power_of_two < N) power_of_two <<= 1;
+
+    std::vector<std::complex<double>> complex_data(power_of_two);
+    for (size_t i = 0; i < N; ++i) {
+        complex_data[i] = real_data[i];
+    }
+
+    fft(complex_data);
+
+    std::vector<double> magnitudes(power_of_two / 2);
+    for (size_t i = 0; i < power_of_two / 2; ++i) {
+        magnitudes[i] = std::abs(complex_data[i]);
+    }
+    return magnitudes;
+}
+
+void low_pass_filter_and_fft_cb(void* buffer, unsigned int frames) {
+    float* samples = static_cast<float*>(buffer);
+    static float prev_sample_left = 0.0f;
+    static float prev_sample_right = 0.0f;
+    const float alpha = 0.05f;
+
+    if (g_gs.current_dialog) {
+        for (unsigned int i = 0; i < frames * 2; i += 2) {
+            samples[i] = prev_sample_left + alpha * (samples[i] - prev_sample_left);
+            prev_sample_left = samples[i];
+            samples[i + 1] = prev_sample_right + alpha * (samples[i + 1] - prev_sample_right);
+            prev_sample_right = samples[i + 1];
+        }
+    }
+
+    std::vector<double> real_data(frames);
+    for (unsigned int i = 0; i < frames; i++) {
+        real_data[i] = samples[i * 2];
+    }
+
+    auto magnitudes = perform_fft(real_data);
+
+    for (auto& magnitude : magnitudes) {
+        magnitude = 20 * log10(magnitude + 1e-6);
+        magnitude += 10.0;
+        magnitude *= 1.2;
+    }
+
+    const size_t bin_size = magnitudes.size() / NUM_BARS;
+    static std::vector<float> smoothed_heights(NUM_BARS, 0.0f);
+    for (size_t i = 0; i < NUM_BARS; i++) {
+        float avg_magnitude = 0.0f;
+        for (size_t j = 0; j < bin_size; j++) {
+            avg_magnitude += magnitudes[i * bin_size + j];
+        }
+        avg_magnitude /= bin_size;
+
+        const float smoothing_factor = 0.8f;
+        smoothed_heights[i] = smoothing_factor * smoothed_heights[i] + (1.0f - smoothing_factor) * avg_magnitude;
+        g_gs.bar_heights[i] = std::max(0.0f, smoothed_heights[i] * scaling_factor);
     }
 }
 
@@ -112,10 +185,10 @@ int main(void)
 	InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
 	InitAudioDevice();
 
-	constexpr auto SONGS = 3;
+	constexpr auto SONGS = 6;
 	for (usize i = 0; i < SONGS; i++) {
 		auto song = LoadMusicStream(TextFormat(RESOURCES_PATH "music_%d.mp3", i));
-		AttachAudioStreamProcessor(song.stream, low_pass_filter_cb);
+		AttachAudioStreamProcessor(song.stream, low_pass_filter_and_fft_cb);
 		g_gs.music.push_back(song);
 	}
 	srand(time(nullptr));
@@ -173,6 +246,8 @@ void set_level(usize i, bool reset_dialog)
 	g_gs.completion_time = 0;
 }
 
+static bool dragging = false;
+static Vector2 prev_mouse_pos = { 0, 0 };
 void produce_frame(void)
 {
 	if (!IsMusicStreamPlaying(g_gs.music[g_gs.current_song])) {
@@ -280,12 +355,28 @@ void produce_frame(void)
 		if (!g_gs.current_dialog) {
 			g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
 			g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
+
+			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+				Vector2 mouse_pos = GetMousePosition();
+
+				if (!dragging) {
+					dragging = true;
+					prev_mouse_pos = mouse_pos;
+				} else {
+					float deltaX = mouse_pos.x - prev_mouse_pos.x;
+					g_gs.target_menu_scroll += deltaX * 2;
+					prev_mouse_pos = mouse_pos;
+				}
+			} else {
+				dragging = false;
+			}
+
 			if (g_gs.target_menu_scroll > 0)
 				g_gs.target_menu_scroll = 0;
 		}
 
 		for (auto &level : g_gs.levels) {
-			if (level.files_required < g_gs.total_collected_files)
+			if (g_gs.total_collected_files < level.files_required )
 				continue;
 
 			if (!level.did_initial_dialog) {
@@ -299,9 +390,20 @@ void produce_frame(void)
 
 	BeginDrawing();
 	{
-		if (g_gs.level()) {
-			ClearBackground(g_gs.palette.game_background);
+		ClearBackground(g_gs.level() ? g_gs.palette.game_background : g_gs.palette.menu_background);
+		int bar_width = g_gs.widthf / NUM_BARS;
 
+		for (int i = 0; i < NUM_BARS; i++) {
+			int x = i * bar_width;
+			int height = g_gs.bar_heights[i];
+
+			Color color = g_gs.level() ? g_gs.palette.menu_background : g_gs.palette.game_background;
+
+			DrawRectangle(x, g_gs.heightf - height, bar_width - 2, height, color);
+			DrawRectangle(g_gs.widthf - x - bar_width, g_gs.heightf - height, bar_width - 2, height, color);
+		}
+
+		if (g_gs.level()) {
 			g_gs.level()->render(&g_gs.camera);
 			if (g_gs.player.health != PLAYER_MAX_HP) {
 				constexpr auto BAR_WIDTH = 30.f;
@@ -325,8 +427,6 @@ void produce_frame(void)
 				    g_gs.font, text, { g_gs.widthf / 2 - w / 2, 20 }, 40, 3, g_gs.palette.primary);
 			}
 		} else {
-			ClearBackground(g_gs.palette.menu_background);
-
 			float t = 0;
 			int   i = 1;
 

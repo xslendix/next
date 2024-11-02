@@ -9,6 +9,8 @@
 #include "Level.h"
 #include "Player.h"
 
+constexpr auto NUM_BARS = 32;
+
 struct GameState {
 	struct Dialog {
 		std::string name;
@@ -47,6 +49,8 @@ struct GameState {
 
 	f32 menu_scroll = 0;
 	f32 target_menu_scroll = 0;
+
+	f32 bar_heights[NUM_BARS] = {};
 
 	std::map<std::string, std::vector<std::vector<Dialog>>> dialogs;
 
