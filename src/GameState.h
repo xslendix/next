@@ -34,6 +34,8 @@ struct GameState {
 
 	// Audio
 	Sound explosion;
+	Sound pickup;
+	Sound wall_hit;
 	std::vector<Music> music;
 	usize current_song;
 

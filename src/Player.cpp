@@ -124,6 +124,9 @@ void Player::update(double dt)
 
 					float initial_speed = Vector2Length(this->velocity);
 
+					if (initial_speed >= PLAYER_SPEED * 0.2)
+						PlaySound(g_gs.wall_hit);
+
 					constexpr float BOUNCE_ANGLE_THRESHOLD = 20.0f;
 					if (angle_degrees > BOUNCE_ANGLE_THRESHOLD) {
 						constexpr float bounce_factor = BOUNCE_SLOWDOWN;

@@ -3,7 +3,7 @@
 #include <tuple>
 
 static float get_random_hue(void) {
-	return static_cast<float>(GetRandomValue(188, 235));
+	return static_cast<float>(GetRandomValue(220, 250));
 }
 
 static constexpr float fixed_saturation = 0.8f;

@@ -118,8 +118,11 @@ int main(void)
 		AttachAudioStreamProcessor(song.stream, low_pass_filter_cb);
 		g_gs.music.push_back(song);
 	}
-	g_gs.current_song = GetRandomValue(0, SONGS-1);
+	srand(time(nullptr));
+	g_gs.current_song = rand() % SONGS;
 	g_gs.explosion = LoadSound(RESOURCES_PATH "explosion.mp3");
+	g_gs.pickup = LoadSound(RESOURCES_PATH "pickup.wav");
+	g_gs.wall_hit = LoadSound(RESOURCES_PATH "wall_hit.wav");
 	PlayMusicStream(g_gs.music[g_gs.current_song]);
 
 	g_gs.spritesheet = LoadTexture("resources/spritesheet.png");
@@ -192,6 +195,13 @@ void produce_frame(void)
 	}
 #endif
 
+	if (IsKeyPressed(KEY_M)) {
+		StopMusicStream(g_gs.music[g_gs.current_song]);
+		g_gs.current_song++;
+		g_gs.current_song %= g_gs.music.size();
+		PlayMusicStream(g_gs.music[g_gs.current_song]);
+	}
+
 	g_gs.width = GetScreenWidth();
 	g_gs.height = GetScreenHeight();
 	g_gs.widthf = static_cast<float>(g_gs.width);
@@ -211,6 +221,7 @@ void produce_frame(void)
 					pickup.time_since_pickup = 0;
 					g_gs.player.trail.push_back(
 					    Player::TrailPickup { &pickup, g_gs.player.get_next_trail_position() });
+					PlaySound(g_gs.pickup);
 				}
 			}
 		}
