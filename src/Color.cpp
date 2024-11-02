@@ -3,12 +3,6 @@
 #include <tuple>
 
 static float get_random_hue(void) {
-    //int hue = GetRandomValue(0, 360);
-    //// Avoid the orange, yellow, and green ranges
-    //while ((hue >= 15 && hue <= 70) || (hue >= 85 && hue <= 150)) {
-    //    hue = GetRandomValue(0, 360);
-    //}
-    //return static_cast<float>(hue);
 	return static_cast<float>(GetRandomValue(188, 235));
 }
 
@@ -39,6 +33,11 @@ ColorPalette ColorPalette::generate(void)
     std::tie(p.wall, p.game_background) = get_colors(bg_hue);
 
     float primary_hue = fmod(bg_hue + 180.0f, 360.0f);
+
+    if (primary_hue >= 270.0f && primary_hue <= 300.0f) {
+        primary_hue = fmod(primary_hue + 60.0f, 360.0f);
+    }
+
     p.primary = ColorFromHSV(primary_hue, fixed_saturation, 0.75f);
     p.primary.a = 0xff;
 
@@ -54,7 +53,7 @@ ColorPalette ColorPalette::generate(void)
 
     p.one_way_zone_background = ColorBrightness(p.game_background, -0.25f);
 
-    p.danger_zone_background = ColorFromHSV(0.0f, fixed_saturation, 0.5f);
+    p.danger_zone_background = ColorLerp(ColorFromHSV(0.0f, fixed_saturation, 0.5f), p.game_background, 0.2);
 
     return p;
 }

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -31,8 +32,35 @@ void set_level(usize i, bool reset_dialog = false);
 static void DrawTextBoxed(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint);
 static void DrawTextBoxedSelectable(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);
 
+void low_pass_filter_cb(void *buffer, unsigned int frames) {
+	if (!g_gs.current_dialog) return;
+    float *samples = (float *)buffer;
+    static float prevSampleLeft = 0.0f;
+    static float prevSampleRight = 0.0f;
+    float alpha = 0.05f;
+
+    for (unsigned int i = 0; i < frames * 2; i += 2) {
+        samples[i] = prevSampleLeft + alpha * (samples[i] - prevSampleLeft);
+        prevSampleLeft = samples[i];
+        samples[i + 1] = prevSampleRight + alpha * (samples[i + 1] - prevSampleRight);
+        prevSampleRight = samples[i + 1];
+    }
+}
+
+float angle_from_center(const Vector2& center, const Vector2& point) {
+	return atan2(point.y - center.y, point.x - center.x);
+}
+
+usize number_of_files_in_directory(std::filesystem::path path)
+{
+    using std::filesystem::directory_iterator;
+    return std::distance(directory_iterator(path), directory_iterator{});
+}
+
 int main(void)
 {
+	SetRandomSeed(time(nullptr));
+
 	for (usize i = 0; i < 800; i++) {
 		g_gs.menu_particles.push_back({
 		    static_cast<float>(GetRandomValue(0, INITIAL_SCREEN_WIDTH)),
@@ -48,11 +76,26 @@ int main(void)
 			ChangeDirectory(parentPath.string().c_str());
 		}
 
-		SetRandomSeed(time(nullptr));
-
 		g_gs.palette = ColorPalette::generate();
-		for (int i = 0; i < 1; i++) {
-			g_gs.levels.push_back(Level::read_from_file(TextFormat(RESOURCES_PATH "Level%d.json", i)));
+		auto const dir_files
+		    = number_of_files_in_directory(RESOURCES_PATH "levels");
+		for (int i = 0; i < dir_files; i++) {
+			g_gs.levels.push_back(Level::read_from_file(TextFormat(RESOURCES_PATH "levels/Level%d.json", i)));
+
+			for (auto& zone : g_gs.levels[i].zones) {
+				Vector2 center = { 0, 0 };
+				for (const auto& point : zone.points) {
+					center.x += point.x;
+					center.y += point.y;
+				}
+				center.x /= zone.points.size();
+				center.y /= zone.points.size();
+
+				std::sort(zone.points.begin(), zone.points.end(),
+					[&center](const Vector2& a, const Vector2& b) {
+						return angle_from_center(center, a) > angle_from_center(center, b);
+					});
+			}
 		}
 	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;
@@ -67,6 +110,17 @@ int main(void)
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
 #endif
 	InitWindow(INITIAL_SCREEN_WIDTH, INITIAL_SCREEN_HEIGHT, "ByteRacer");
+	InitAudioDevice();
+
+	constexpr auto SONGS = 3;
+	for (usize i = 0; i < SONGS; i++) {
+		auto song = LoadMusicStream(TextFormat(RESOURCES_PATH "music_%d.mp3", i));
+		AttachAudioStreamProcessor(song.stream, low_pass_filter_cb);
+		g_gs.music.push_back(song);
+	}
+	g_gs.current_song = GetRandomValue(0, SONGS-1);
+	g_gs.explosion = LoadSound(RESOURCES_PATH "explosion.mp3");
+	PlayMusicStream(g_gs.music[g_gs.current_song]);
 
 	g_gs.spritesheet = LoadTexture("resources/spritesheet.png");
 	g_gs.read_dialogs_from_file("resources/Dialog.json");
@@ -118,6 +172,15 @@ void set_level(usize i, bool reset_dialog)
 
 void produce_frame(void)
 {
+	//if (!IsMusicStreamPlaying(g_gs.music[g_gs.current_song])) {
+	//	StopMusicStream(g_gs.music[g_gs.current_song]);
+	//	g_gs.current_song++;
+	//	g_gs.current_song %= g_gs.music.size();
+	//	SeekMusicStream(g_gs.music[g_gs.current_song], 0);
+	//	PlayMusicStream(g_gs.music[g_gs.current_song]);
+	//}
+	UpdateMusicStream(g_gs.music[g_gs.current_song]);
+
 	double dt = GetFrameTime();
 
 	if (IsKeyPressed(KEY_R)) {
@@ -160,13 +223,13 @@ void produce_frame(void)
 				} else if (zone.kind == Level::Zone::Kind::End) {
 					if (!g_gs.completion_time) {
 						g_gs.completion_time = g_gs.time_spent;
-						g_gs.collected_files = 0;
-						g_gs.total_files = 0;
+						g_gs.level()->collected_files = 0;
+						g_gs.level()->total_files = 0;
 						for (auto &pickup : g_gs.level()->pickups) {
 							if (pickup.kind != Level::Pickup::Kind::File)
 								continue;
-							g_gs.total_files++;
-							g_gs.collected_files += pickup.time_since_pickup != -1;
+							g_gs.level()->total_files++;
+							g_gs.level()->collected_files += pickup.time_since_pickup != -1;
 						}
 					}
 				} else if (zone.kind == Level::Zone::Kind::DialogTrigger) {
@@ -191,8 +254,10 @@ void produce_frame(void)
 
 		if (g_gs.player.health > PLAYER_MAX_HP)
 			g_gs.player.health = PLAYER_MAX_HP;
-		else if (g_gs.player.health < 0)
+		else if (g_gs.player.health < 0) {
 			set_level(*g_gs.current_level, false);
+			PlaySound(g_gs.explosion);
+		}
 
 		g_gs.camera.offset.x = g_gs.widthf / 2.;
 		g_gs.camera.offset.y = g_gs.heightf / 2.;
@@ -211,8 +276,10 @@ void produce_frame(void)
 				continue;
 
 			if (!level.did_initial_dialog) {
-				g_gs.show_dialog(level.name, 0);
-				level.did_initial_dialog = true;
+				if (level.on_unlock_dialog != -1) {
+					g_gs.show_dialog(level.name, level.on_unlock_dialog);
+					level.did_initial_dialog = true;
+				}
 			}
 		}
 	}
@@ -250,6 +317,11 @@ void produce_frame(void)
 			float t = 0;
 			int   i = 1;
 
+			g_gs.total_collected_files = 0;
+			for (auto const &level : g_gs.levels) {
+				g_gs.total_collected_files += level.collected_files;
+			}
+
 			constexpr auto HEIGHT = 60;
 			constexpr auto BUTTON_SIZE = 50;
 			constexpr auto PADDING = 20;
@@ -271,7 +343,7 @@ void produce_frame(void)
 			Vector2 prev;
 			for (auto const &level : g_gs.levels) {
 				auto    offy = std::sin(t) * HEIGHT;
-				auto    x = PADDING + g_gs.menu_scroll + i * BUTTON_SIZE * 3;
+				auto    x = PADDING + g_gs.menu_scroll + i * BUTTON_SIZE * 5;
 				auto    y = g_gs.heightf / 2 + offy;
 				Vector2 pos { x, y };
 
@@ -285,9 +357,10 @@ void produce_frame(void)
 
 				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE);
 
-				if (level.files_required) {
+				bool has_files = g_gs.total_collected_files >= level.files_required;
+				if (level.files_required && !has_files) {
 					constexpr auto FILE_ICON_SIZE = 15;
-					auto txt = TextFormat("%d/%d", 0, level.files_required);
+					auto txt = TextFormat("%d/%d", g_gs.total_collected_files, level.files_required);
 					auto sz = MeasureTextEx(g_gs.font, txt, FILE_ICON_SIZE * 2.5, 2);
 					auto file_pos = pos;
 					file_pos.y -= BUTTON_SIZE + FILE_ICON_SIZE * 2;
@@ -298,7 +371,7 @@ void produce_frame(void)
 					DrawTextEx(g_gs.font, txt, file_pos, FILE_ICON_SIZE * 2.5, 2, g_gs.palette.file);
 				}
 
-				if (!level.name.empty()) {
+				if (!level.name.empty() && has_files) {
 					constexpr auto TEXT_SIZE = 10;
 					auto txt = level.name.c_str();
 					auto sz = MeasureTextEx(g_gs.font, txt, TEXT_SIZE * 2.5, 2);
@@ -310,7 +383,7 @@ void produce_frame(void)
 
 				DrawCircleV(pos, BUTTON_SIZE, g_gs.palette.primary);
 				DrawCircleV(pos, BUTTON_SIZE - BORDER_WIDTH,
-				    in ? g_gs.palette.game_background : g_gs.palette.menu_background);
+				    in && has_files ? g_gs.palette.game_background : g_gs.palette.menu_background);
 
 				auto txt = TextFormat("%d", i);
 				auto w = MeasureTextEx(g_gs.font, txt, FONT_SIZE, 2).x;
@@ -318,7 +391,7 @@ void produce_frame(void)
 				DrawTextEx(g_gs.font, txt, { x - w / 2, static_cast<float>(y - FONT_SIZE / 2) },
 				    FONT_SIZE, 2, g_gs.palette.primary);
 
-				if (IsMouseButtonPressed(0) && in) {
+				if (IsMouseButtonPressed(0) && in && has_files) {
 					set_level(i - 1, true);
 				}
 
@@ -373,6 +446,8 @@ void produce_frame(void)
 	}
 	EndDrawing();
 }
+
+// Shamelessly stolen from Raylib examples :^)
 
 static void DrawTextBoxed(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint)
 {

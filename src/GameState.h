@@ -26,13 +26,16 @@ struct GameState {
 	usize current_dialog_idx, current_dialog_dialog_idx;
 	f32 dialog_box_y;
 
-	int collected_files, total_files;
-
 	int total_collected_files = 0;
 
 	ColorPalette palette;
 
 	std::optional<usize> current_level;
+
+	// Audio
+	Sound explosion;
+	std::vector<Music> music;
+	usize current_song;
 
 	// Rendering
 	i32 width;

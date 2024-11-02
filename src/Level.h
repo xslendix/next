@@ -93,7 +93,7 @@ struct Level {
 	f64         author_time;
 	Vector2     start_position;
 	f32         start_angle;
-	u32         on_unlock_dialog;
+	u32         on_unlock_dialog = -1;
 
 	std::vector<Wall>                walls;
 	std::vector<Zone>                zones;
@@ -101,4 +101,5 @@ struct Level {
 
 	// Non-serialized
 	bool did_initial_dialog = false;
+	int collected_files = 0, total_files = 0;
 };

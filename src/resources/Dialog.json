@@ -32,5 +32,21 @@
         "msg": "Grab it. You may need it."
       }
     ]
+  ],
+  "gateway0.omnitek.co": [
+    [
+      {
+        "name": "Byte",
+        "msg": "Wait!"
+      },
+      {
+        "name": "Byte",
+        "msg": "Be careful, once you go in that zone, you will slowly lose power."
+      },
+      {
+        "name": "Byte",
+        "msg": "If you no longer have any power, you will terminate."
+      }
+    ]
   ]
 }

@@ -83,6 +83,8 @@ Level Level::deserialize(nlohmann::json &data)
 	level.start_position.x = data["start_position"][0];
 	level.start_position.y = data["start_position"][1];
 	level.start_angle = data["start_angle"];
+	if (!data["on_unlock_dialog"].is_null())
+		level.on_unlock_dialog = data["on_unlock_dialog"];
 
 	for (auto &wallj : data["walls"]) {
 		Wall wall;
@@ -266,7 +268,7 @@ void Level::render_hud(f64 t)
 	}
 	if (t > 1) {
 		DrawTextEx(g_gs.font,
-		    TextFormat("Files collected: %d/%d", g_gs.collected_files, g_gs.total_files),
+		    TextFormat("Files collected: %d/%d", this->collected_files, this->total_files),
 		    { x + PADDING, off }, FONT_SIZE, FONT_SPACING, g_gs.palette.primary);
 		off += FONT_SIZE * .75 + PADDING / 2;
 	}

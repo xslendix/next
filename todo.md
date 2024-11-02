@@ -13,18 +13,24 @@
     - [x] Item pickups
     - [x] Respawn
     - [x] Timer
-    - [-] Zones
+    - [x] Zones
         - [x] Next level (invisible)
-        - [ ] Dialog trigger (on join)
+        - [x] Dialog trigger (on join)
         - [x] One way
         - [x] Danger
-    - [ ] Dialog UI
+    - [x] Dialog UI
+	- [ ] Sound effects
+		- [ ] Explosion
+		- [ ] Pickup
+		- [ ] Select
+		- [ ] Hover
+	- [ ] Music
     - [ ] Save best time
     - [ ] Save files collected
 - [ ] Level select
     - [x] Render nodes on screen (random y, x advanced random)
     - [x] Draw lines behind those nodes
-    - [ ] Horizontal scroll
+    - [x] Horizontal scroll
     - [ ] On node click, open popup on right with level info
         - [ ] Files collected
         - [ ] Best time
