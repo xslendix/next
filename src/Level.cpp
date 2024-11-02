@@ -5,6 +5,88 @@
 
 #include <raylib.h>
 
+#include <polypartition.h>
+
+#include <polypartition.h>
+
+float CalculateSignedArea(std::vector<Vector2> const &points)
+{
+	float  area = 0.0f;
+	size_t n = points.size();
+	for (size_t i = 0; i < n; ++i) {
+		Vector2 const &p1 = points[i];
+		Vector2 const &p2 = points[(i + 1) % n];
+		area += (p1.x * p2.y - p2.x * p1.y);
+	}
+	return area * 0.5f;
+}
+
+void EnsureCounterClockwise(std::vector<Vector2> &points)
+{
+	if (CalculateSignedArea(points) < 0) {
+		std::reverse(points.begin(), points.end());
+	}
+}
+
+std::vector<TPPLPoint> ConvertToTPPLPoints(std::vector<Vector2> const &points)
+{
+	std::vector<TPPLPoint> polyPoints(points.size());
+	for (size_t i = 0; i < points.size(); ++i) {
+		polyPoints[i].x = points[i].x;
+		polyPoints[i].y = points[i].y;
+	}
+	return polyPoints;
+}
+
+float CalculateTriangleArea(Vector2 const &p0, Vector2 const &p1, Vector2 const &p2)
+{
+	return (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y);
+}
+
+void DrawTriangleCCW(Vector2 p0, Vector2 p1, Vector2 p2, Color col)
+{
+	if (CalculateTriangleArea(p0, p1, p2) > 0) {
+		std::swap(p1, p2);
+	}
+	TraceLog(LOG_INFO,
+	    "Drawing triangle with points: p0(%.2f, %.2f), p1(%.2f, %.2f), p2(%.2f, %.2f)", p0.x, p0.y,
+	    p1.x, p1.y, p2.x, p2.y);
+
+	DrawTriangle(p0, p1, p2, col);
+}
+
+void DrawPolygon(std::vector<Vector2> &points, Color col)
+{
+	EnsureCounterClockwise(points);
+
+	if (points.size() < 3) {
+		TraceLog(LOG_WARNING, "Not enough points to form a polygon.");
+		return;
+	}
+
+	std::vector<TPPLPoint> polyPoints = ConvertToTPPLPoints(points);
+
+	TPPLPoly polygon;
+	polygon.Init(polyPoints.size());
+	for (size_t i = 0; i < polyPoints.size(); ++i) {
+		polygon[i] = polyPoints[i];
+	}
+
+	std::list<TPPLPoly> triangles;
+	TPPLPartition       partitioner;
+	partitioner.Triangulate_EC(&polygon, &triangles);
+
+	for (TPPLPoly const &triangle : triangles) {
+		if (triangle.GetNumPoints() == 3) {
+			Vector2 p0 = { (float)triangle[0].x, (float)triangle[0].y };
+			Vector2 p1 = { (float)triangle[1].x, (float)triangle[1].y };
+			Vector2 p2 = { (float)triangle[2].x, (float)triangle[2].y };
+
+			DrawTriangleCCW(p0, p1, p2, col);
+		}
+	}
+}
+
 using json = nlohmann::json;
 
 Level::Level(std::string name, u16 files_required)
@@ -167,7 +249,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 
 	BeginMode2D(*camera);
 	{
-		for (auto const &zone : this->zones) {
+		for (auto &zone : this->zones) {
 			Color col;
 			switch (zone.kind) {
 			case Zone::Kind::End:
@@ -181,7 +263,7 @@ void Level::render(Camera2D *camera, bool origin, bool render_player)
 				col = g_gs.palette.danger_zone_background;
 				break;
 			}
-			DrawTriangleFan(zone.points.data(), zone.points.size(), col);
+			DrawPolygon(zone.points, col);
 		}
 
 		for (auto const &wall : this->walls) {

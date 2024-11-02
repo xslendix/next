@@ -19,10 +19,12 @@ void Player::render(void)
 				radius *= pickup.time_since_pickup / .3;
 			}
 		}
-		trailer.ptr->render(trailer.position, radius, atan2(trailer.direction.y, trailer.direction.x) * RAD2DEG);
+		trailer.ptr->render(
+		    trailer.position, radius, atan2(trailer.direction.y, trailer.direction.x) * RAD2DEG);
 	}
 
-	g_gs.render_texture(this->position, 0, this->angle * RAD2DEG + 90, PLAYER_RADIUS, g_gs.palette.primary);
+	g_gs.render_texture(
+	    this->position, 0, this->angle * RAD2DEG + 90, PLAYER_RADIUS, g_gs.palette.primary);
 }
 
 void Player::update(double dt)
@@ -171,5 +173,5 @@ Vector2 Player::get_next_trail_position(void)
 	if (this->trail.empty())
 		return this->position;
 	auto const &trail = this->trail.at(this->trail.size() - 1);
-	return trail.position - Vector2Scale(trail.direction, 1);
+	return Vector2Subtract(trail.position, Vector2Scale(trail.direction, 1));
 }

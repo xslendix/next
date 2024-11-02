@@ -2,8 +2,8 @@
 
 #include "common.h"
 
-#include <raylib.h>
 #include <nlohmann/json.hpp>
+#include <raylib.h>
 
 #include "Color.h"
 #include "Level.h"
@@ -22,11 +22,12 @@ struct GameState {
 	Player             player;
 	f64                time_spent;
 	f64                completion_time;
+	bool               cheat = false;
 
 	std::vector<std::vector<Dialog>> *current_dialog = nullptr;
 	// I'm sorry if you're reading this...
 	usize current_dialog_idx, current_dialog_dialog_idx;
-	f32 dialog_box_y;
+	f32   dialog_box_y;
 
 	int total_collected_files = 0;
 
@@ -35,11 +36,11 @@ struct GameState {
 	std::optional<usize> current_level;
 
 	// Audio
-	Sound explosion;
-	Sound pickup;
-	Sound wall_hit;
+	Sound              explosion;
+	Sound              pickup;
+	Sound              wall_hit;
 	std::vector<Music> music;
-	usize current_song;
+	usize              current_song;
 
 	// Rendering
 	i32 width;
@@ -55,7 +56,7 @@ struct GameState {
 	std::map<std::string, std::vector<std::vector<Dialog>>> dialogs;
 
 	std::vector<Vector2> menu_particles;
-	std::vector<f32>   menu_particle_speeds;
+	std::vector<f32>     menu_particle_speeds;
 
 	RenderTexture2D target {};
 	Camera2D        camera {};
@@ -83,7 +84,8 @@ struct GameState {
 		return deserialize_dialogs(j);
 	}
 
-	void show_dialog(std::string name, int idx) {
+	void show_dialog(std::string name, int idx)
+	{
 		auto &dialog = this->dialogs[name];
 		this->current_dialog = &dialog;
 		this->dialog_box_y = this->heightf;

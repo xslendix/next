@@ -48,7 +48,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 CPMAddPackage(
     NAME raylib
     GITHUB_REPOSITORY raysan5/raylib
-    GIT_TAG master
+		GIT_TAG 5.0
 )
 
 CPMAddPackage(
@@ -61,7 +61,7 @@ CPMAddPackage(
 if(MSVC)
     target_compile_options(raylib PRIVATE /wd4100 /wd4204)
 else()
-    target_compile_options(raylib PRIVATE -Wno-error=implicit-function-declaration -Wno-unused-result)
+	target_compile_options(raylib PRIVATE -Wno-error=implicit-function-declaration -Wno-unused-result)
 endif()
 
 # Add your project sources

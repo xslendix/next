@@ -7,6 +7,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
 endif()
 
 set(SOURCES
+	polypartition.cpp
 	Color.cpp
 	Gui.cpp
 	GameMath.cpp

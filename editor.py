@@ -45,6 +45,11 @@ class LevelEditor:
 		self.canvas.bind('<Key-z>', lambda event: self.add_zone())
 		self.canvas.bind('<Key-c>', lambda event: self.add_pickup())
 
+		self.canvas.bind("<Left>", lambda event: self.on_key_scroll("left"))
+		self.canvas.bind("<Right>", lambda event: self.on_key_scroll("right"))
+		self.canvas.bind("<Up>", lambda event: self.on_key_scroll("up"))
+		self.canvas.bind("<Down>", lambda event: self.on_key_scroll("down"))
+
 		file_frame = tk.Frame(master)
 		file_frame.pack(side=tk.LEFT, anchor="w", padx=5, pady=5)
 
@@ -83,6 +88,20 @@ class LevelEditor:
 
 
 		self.canvas.focus_set()  # Add this line in __init__
+
+	def on_key_scroll(self, direction):
+		# Adjust offset based on direction
+		scroll_amount = 20  # Adjust the scroll speed as needed
+		if direction == "left":
+			self.offset_x += scroll_amount
+		elif direction == "right":
+			self.offset_x -= scroll_amount
+		elif direction == "up":
+			self.offset_y += scroll_amount
+		elif direction == "down":
+			self.offset_y -= scroll_amount
+		
+		self.draw_level()
 
 	def edit_zone_kind(self):
 		if self.selected_zone is not None:
@@ -159,9 +178,9 @@ class LevelEditor:
 			messagebox.showinfo("No Pickup Selected", "Please select a pickup to edit.")
 
 	def set_start_angle(self):
-		angle = simpledialog.askfloat("Set Start Angle", "Enter angle in degrees:", initialvalue=self.level_data["start_angle"])
+		angle = simpledialog.askfloat("Set Start Angle", "Enter angle in degrees:", initialvalue=math.degrees(self.level_data["start_angle"]))
 		if angle is not None:
-			self.level_data["start_angle"] = angle
+			self.level_data["start_angle"] = math.radians(angle)
 			self.draw_level()
 
 	def draw_level(self):
@@ -204,7 +223,7 @@ class LevelEditor:
 
 	def draw_start_position(self):
 		x, y = self.level_data["start_position"]
-		angle = self.level_data["start_angle"]
+		angle = math.degrees(self.level_data["start_angle"])
 		self.canvas.create_oval(x - 5 + self.offset_x, y - 5 + self.offset_y, 
 								x + 5 + self.offset_x, y + 5 + self.offset_y, 
 								fill="blue", outline="black", tags=("start", "movable"))
