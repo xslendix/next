@@ -27,6 +27,9 @@ target_include_directories(ByteRacer PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_
 target_link_libraries(ByteRacer raylib nlohmann_json)
 if(NOT WIN32)
 	target_link_libraries(ByteRacer m)
+else()
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	set(BUILD_SHARED_LIBS OFF)
 endif()
 
 # Web Configurations
