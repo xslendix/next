@@ -48,9 +48,6 @@ void DrawTriangleCCW(Vector2 p0, Vector2 p1, Vector2 p2, Color col)
 	if (CalculateTriangleArea(p0, p1, p2) > 0) {
 		std::swap(p1, p2);
 	}
-	TraceLog(LOG_INFO,
-	    "Drawing triangle with points: p0(%.2f, %.2f), p1(%.2f, %.2f), p2(%.2f, %.2f)", p0.x, p0.y,
-	    p1.x, p1.y, p2.x, p2.y);
 
 	DrawTriangle(p0, p1, p2, col);
 }
@@ -59,10 +56,8 @@ void DrawPolygon(std::vector<Vector2> &points, Color col)
 {
 	EnsureCounterClockwise(points);
 
-	if (points.size() < 3) {
-		TraceLog(LOG_WARNING, "Not enough points to form a polygon.");
+	if (points.size() < 3)
 		return;
-	}
 
 	std::vector<TPPLPoint> polyPoints = ConvertToTPPLPoints(points);
 
