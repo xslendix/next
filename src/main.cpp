@@ -367,20 +367,21 @@ void           produce_frame(void)
 	} else {
 		constexpr Rectangle TARGET_SETTINGS_BUTTON = { 20, 20, 64, 64 };
 
-		if (!g_gs.current_dialog && !g_gs.settings_open) {
-			DrawTexturePro(g_gs.settings_icon,
-			    { 0, 0, (float)g_gs.settings_icon.width, (float)g_gs.settings_icon.height },
-			    TARGET_SETTINGS_BUTTON, { 0, 0 }, 0, g_gs.palette.game_background);
+		DrawTexturePro(g_gs.settings_icon,
+		    { 0, 0, (float)g_gs.settings_icon.width, (float)g_gs.settings_icon.height },
+		    TARGET_SETTINGS_BUTTON, { 0, 0 }, 0, g_gs.palette.game_background);
 
+		if (!g_gs.current_dialog
+		    && CheckCollisionPointRec(GetMousePosition(), TARGET_SETTINGS_BUTTON)
+		    && IsMouseButtonPressed(0)) {
+			g_gs.settings_open = !g_gs.settings_open;
+			if (g_gs.settings_open)
+				g_gs.settings_y = g_gs.heightf;
+		}
+
+		if (!g_gs.current_dialog && !g_gs.settings_open) {
 			g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
 			g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
-
-			if (CheckCollisionPointRec(GetMousePosition(), TARGET_SETTINGS_BUTTON)
-			    && IsMouseButtonPressed(0)) {
-				g_gs.settings_open = !g_gs.settings_open;
-				if (g_gs.settings_open)
-					g_gs.settings_y = g_gs.heightf;
-			}
 
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 				Vector2 mouse_pos = GetMousePosition();
@@ -503,7 +504,7 @@ void           produce_frame(void)
 				prev = pos;
 
 				bool in = CheckCollisionPointCircle(GetMousePosition(), pos, BUTTON_SIZE)
-				    && !g_gs.current_dialog;
+				    && !g_gs.current_dialog && !g_gs.settings_open;
 
 				bool has_files = g_gs.total_collected_files >= level.files_required;
 
@@ -604,6 +605,10 @@ void           produce_frame(void)
 				    g_gs.font, SFX, { rec.x + 20, y }, ITEM_H, ITEM_SP, g_gs.palette.primary);
 				slider(g_gs.sfx_volume,
 				    { rec.x + rec.width - 20 - SLIDER_W, y + 10, SLIDER_W, SLIDER_H });
+
+				SetSoundVolume(g_gs.explosion, g_gs.sfx_volume);
+				SetSoundVolume(g_gs.pickup, g_gs.sfx_volume);
+				SetSoundVolume(g_gs.wall_hit, g_gs.sfx_volume);
 			}
 		}
 
@@ -658,7 +663,6 @@ void           produce_frame(void)
 
 static void slider(f32 &value, Rectangle bounds)
 {
-	DrawRectangleRec(bounds, RED);
 	DrawLineEx({ bounds.x + bounds.height / 2, bounds.y + bounds.height / 2 },
 	    { bounds.x + bounds.width - bounds.height / 2, bounds.y + bounds.height / 2 }, 2,
 	    g_gs.palette.primary);
@@ -668,7 +672,15 @@ static void slider(f32 &value, Rectangle bounds)
 	};
 	DrawCircleV(handle, bounds.height / 2, g_gs.palette.primary);
 
-	if (CheckCollsionPointRec(GetMousePosition(), bounds)) { }
+	if (CheckCollisionPointRec(GetMousePosition(), bounds) && IsMouseButtonDown(0)) {
+		auto pos = static_cast<float>(GetMouseX());
+		pos -= bounds.x;
+		value = pos / bounds.width;
+		if (value > 1)
+			value = 1;
+		if (value < 0)
+			value = 0;
+	}
 }
 
 // Shamelessly stolen from Raylib examples :^)
