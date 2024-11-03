@@ -1,6 +1,6 @@
 {
-    "files_required": 5,
-    "name": "mainframe",
+    "files_required": 6,
+    "name": "mainframe.omnitek.local",
     "author_time": 32.28,
     "start_position": [
         75,
@@ -269,5 +269,5 @@
             "value": 0
         }
     ],
-    "on_unlock_dialog": -1
+    "on_unlock_dialog": 0
 }

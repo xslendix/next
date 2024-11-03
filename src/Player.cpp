@@ -97,6 +97,27 @@ void Player::update(double dt)
 
 				float distance = Vector2Length(Vector2Subtract(this->position, closest_point));
 				float radius = PLAYER_RADIUS + (WALL_THICKNESS / 2);
+
+				Vector2 start_to_player = Vector2Subtract(this->position, wall_start);
+				float   start_distance = Vector2Length(start_to_player);
+				if (start_distance < radius + WALL_THICKNESS / 2) {
+					Vector2 start_normal = Vector2Normalize(start_to_player);
+					this->velocity = Vector2Scale(
+					    Vector2Reflect(this->velocity, start_normal), BOUNCE_SLOWDOWN);
+					this->position = Vector2Add(wall_start,
+					    Vector2Scale(start_normal, radius + 0.15f + WALL_THICKNESS / 2));
+				}
+
+				Vector2 end_to_player = Vector2Subtract(this->position, wall_end);
+				float   end_distance = Vector2Length(end_to_player);
+				if (end_distance < radius + WALL_THICKNESS / 2) {
+					Vector2 end_normal = Vector2Normalize(end_to_player);
+					this->velocity
+					    = Vector2Scale(Vector2Reflect(this->velocity, end_normal), BOUNCE_SLOWDOWN);
+					this->position = Vector2Add(
+					    wall_end, Vector2Scale(end_normal, radius + 0.15f + WALL_THICKNESS / 2));
+				}
+
 				if (distance < radius) {
 					if (wall.kind == Level::Wall::Kind::Door) {
 						auto should_cont = false;

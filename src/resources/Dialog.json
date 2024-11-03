@@ -63,7 +63,7 @@
       }
     ]
   ],
-  "secure.omnitek.co": [
+  "secure.omnitek.local": [
     [
       {
         "name": "Byte",
@@ -87,7 +87,7 @@
       }
     ]
   ],
-  "core.omnitek.co": [
+  "core.omnitek.local": [
     [
       {
         "name": "Byte",
@@ -98,5 +98,21 @@
         "msg": "Just two more computers to infect and are going to finally get the data we need ^_^"
       }
     ]
-  ]
+  ],
+	"mainframe.omnitek.local": [
+		[
+			{
+				"name": "Byte",
+				"msg": "Ah the mainframe..."
+			},
+			{
+				"name": "Byte",
+				"msg": "This is my birthplace."
+			},
+			{
+				"name": "Byte",
+				"msg": "Oh! Ignore me, keep going, we are almost there! :P"
+			}
+		]
+	]
 }
