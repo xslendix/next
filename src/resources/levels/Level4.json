@@ -233,7 +233,7 @@
                 ]
             ],
             "value": 3.14159,
-            "power": 1
+            "power": 0.8
         }
     ],
     "on_unlock_dialog": 0
