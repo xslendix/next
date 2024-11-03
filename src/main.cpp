@@ -155,6 +155,9 @@ int main(int argc, char **argv)
 	if (argc != 1) {
 		g_gs.cheat = 1;
 	}
+#ifdef _DEBUG
+	g_gs.cheat = 1;
+#endif
 
 	try {
 		if (!std::filesystem::exists("resources")) {

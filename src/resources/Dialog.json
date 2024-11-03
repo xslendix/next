@@ -19,7 +19,7 @@
       }, 
       {
         "name": "Byte",
-        "msg": "I am sure you have questions but we don't have time. Go!"
+        "msg": "I am sure you have questions but we don't have time. Sorry! .-."
       } 
     ],
     [
@@ -84,6 +84,18 @@
       {
         "name": "Byte",
         "msg": "Don't worry though, I got your back ^_^"
+      }
+    ]
+  ],
+  "core.omnitek.co": [
+    [
+      {
+        "name": "Byte",
+        "msg": "You made it to the core!"
+      },
+      {
+        "name": "Byte",
+        "msg": "Just two more computers to infect and are going to finally get the data we need ^_^"
       }
     ]
   ]
