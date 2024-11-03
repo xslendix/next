@@ -1,0 +1,37 @@
+{
+    "files_required": 14,
+    "name": "final",
+    "author_time": 0.0,
+    "start_position": [
+        40,
+        40
+    ],
+    "start_angle": 0,
+    "pickups": [],
+    "walls": [],
+    "zones": [
+        {
+            "kind": 0,
+            "points": [
+                [
+                    10,
+                    10
+                ],
+                [
+                    60,
+                    10
+                ],
+                [
+                    60,
+                    60
+                ],
+                [
+                    10,
+                    60
+                ]
+            ],
+            "value": 0
+        }
+    ],
+    "on_unlock_dialog": 0
+}

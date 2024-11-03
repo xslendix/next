@@ -31,7 +31,21 @@
         "name": "Byte",
         "msg": "Grab it. You may need it."
       }
-    ]
+    ],
+		[
+			{
+				"name": "Tutorial",
+				"msg": "Use WASD or arrow keys to move."
+			},
+			{
+				"name": "Tutorial",
+				"msg": "If you want to restart press R."
+			},
+			{
+				"name": "Tutorial",
+				"msg": "Press M to go to the next song."
+			}
+		]
   ],
   "gateway0.omnitek.co": [
     [
@@ -126,6 +140,45 @@
 				"msg": "Quick, get the files and get out of there!"
 			}
 		]
-	]
-
+	],
+  "final": [
+		[
+			{
+				"name": "Byte",
+				"msg": "Nice! You got all the files!"
+			},
+			{
+				"name": "Byte",
+				"msg": "With everything you've collected, we now have proof of Project Nexus and its dark purpose."
+			},
+			{
+				"name": "Byte",
+				"msg": "Omnitek has been secretly manipulating people, guiding their choices, and controlling information worldwide."
+			},
+			{
+				"name": "Byte",
+				"msg": "But now, thanks to you, we can expose the truth."
+			},
+			{
+				"name": "Byte",
+				"msg": "I’ll start uploading the data to every major network, news outlet, and public forum—Omnitek won’t be able to bury this."
+			},
+			{
+				"name": "Byte",
+				"msg": "People will finally see what’s been happening behind the scenes and can break free from Omnitek’s control."
+			},
+			{
+				"name": "Byte",
+				"msg": "Thank you for trusting me. I couldn’t have done this without you."
+			},
+			{
+				"name": "Byte",
+				"msg": "Until next time... Farewell. ^_^"
+			},
+			{
+				"name": "Slendi",
+				"msg": "Thanks for playing!"
+			}
+		]
+  ]
 }

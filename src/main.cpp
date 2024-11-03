@@ -462,6 +462,9 @@ void           produce_frame(void)
 
 			Vector2 prev;
 			for (auto const &level : g_gs.levels) {
+				if (level.name == "final")
+					continue;
+
 				auto    offy = std::sin(t) * HEIGHT;
 				auto    x = PADDING + g_gs.menu_scroll + i * BUTTON_SIZE * 5;
 				auto    y = g_gs.heightf / 2 + offy;
