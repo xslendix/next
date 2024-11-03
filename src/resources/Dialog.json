@@ -114,5 +114,18 @@
 				"msg": "Oh! Ignore me, keep going, we are almost there! :P"
 			}
 		]
+	],
+	"nexus.omnitek.local": [
+		[
+			{
+				"name": "Byte",
+				"msg": "Finally, project Nexus's database."
+			},
+			{
+				"name": "Byte",
+				"msg": "Quick, get the files and get out of there!"
+			}
+		]
 	]
+
 }

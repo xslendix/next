@@ -53,7 +53,7 @@ void Player::update(double dt)
 			if (zone.kind != Level::Zone::Kind::OneWay)
 				continue;
 
-			if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS, zone.points)) {
+			if (CheckCollisionCirclePoly(g_gs.player.position, PLAYER_RADIUS * .85, zone.points)) {
 				this->velocity.x += std::cos(zone.value.one_way_angle) * PLAYER_VELOCITY_ADDITION
 				    * zone.power * dt;
 				this->velocity.y += std::sin(zone.value.one_way_angle) * PLAYER_VELOCITY_ADDITION
@@ -96,7 +96,7 @@ void Player::update(double dt)
 				Vector2 closest_point = Vector2Add(wall_start, Vector2Scale(wall_dir, t));
 
 				float distance = Vector2Length(Vector2Subtract(this->position, closest_point));
-				float radius = PLAYER_RADIUS + (WALL_THICKNESS / 2);
+				float radius = PLAYER_RADIUS * .85 + (WALL_THICKNESS / 2);
 
 				Vector2 start_to_player = Vector2Subtract(this->position, wall_start);
 				float   start_distance = Vector2Length(start_to_player);
