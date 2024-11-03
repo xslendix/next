@@ -42,14 +42,19 @@ struct GameState {
 	std::vector<Music> music;
 	usize              current_song;
 
+	f32 sfx_volume = 1.0f;
+	f32 music_volume = 1.0f;
+
 	// Rendering
 	i32 width;
 	i32 height;
 	f32 widthf;
 	f32 heightf;
 
-	f32 menu_scroll = 0;
-	f32 target_menu_scroll = 0;
+	f32  menu_scroll = 0;
+	f32  target_menu_scroll = 0;
+	bool settings_open = false;
+	f32  settings_y = 0;
 
 	f32 bar_heights[NUM_BARS] = {};
 
@@ -63,6 +68,7 @@ struct GameState {
 	Font            font;
 
 	Texture2D spritesheet;
+	Texture2D settings_icon;
 
 	Level *level()
 	{

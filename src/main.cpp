@@ -23,10 +23,14 @@
 #include <emscripten/emscripten.h>
 #endif
 
+constexpr auto SETTINGS_W = 600;
+constexpr auto SETTINGS_H = 180;
+
 static constexpr auto INITIAL_SCREEN_WIDTH = 800;
 static constexpr auto INITIAL_SCREEN_HEIGHT = INITIAL_SCREEN_WIDTH;
 
 static void produce_frame(void);
+static void slider(f32 &value, Rectangle bounds);
 
 constexpr TextureFilter TEXTURE_FILTER = TEXTURE_FILTER_BILINEAR;
 
@@ -127,6 +131,10 @@ void low_pass_filter_and_fft_cb(void *buffer, unsigned int frames)
 		    = smoothing_factor * smoothed_heights[i] + (1.0f - smoothing_factor) * avg_magnitude;
 		g_gs.bar_heights[i] = std::max(0.0f, smoothed_heights[i] * scaling_factor);
 	}
+
+	for (size_t i = 0; i < frames * 2; i++) {
+		samples[i] *= g_gs.music_volume;
+	}
 }
 
 float angle_from_center(Vector2 const &center, Vector2 const &point)
@@ -143,6 +151,8 @@ usize number_of_files_in_directory(std::filesystem::path path)
 int main(int argc, char **argv)
 {
 	SetRandomSeed(time(nullptr));
+
+	g_gs.settings_y = INITIAL_SCREEN_HEIGHT;
 
 	for (usize i = 0; i < 800; i++) {
 		g_gs.menu_particles.push_back({
@@ -201,6 +211,7 @@ int main(int argc, char **argv)
 	PlayMusicStream(g_gs.music[g_gs.current_song]);
 
 	g_gs.spritesheet = LoadTexture("resources/spritesheet.png");
+	g_gs.settings_icon = LoadTexture("resources/settings.png");
 	g_gs.read_dialogs_from_file("resources/Dialog.json");
 	g_gs.font = LoadFontEx("resources/SpaceMono-Regular.ttf", 60, nullptr, 0);
 
@@ -354,9 +365,22 @@ void           produce_frame(void)
 		g_gs.camera.rotation
 		    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
 	} else {
-		if (!g_gs.current_dialog) {
+		constexpr Rectangle TARGET_SETTINGS_BUTTON = { 20, 20, 64, 64 };
+
+		if (!g_gs.current_dialog && !g_gs.settings_open) {
+			DrawTexturePro(g_gs.settings_icon,
+			    { 0, 0, (float)g_gs.settings_icon.width, (float)g_gs.settings_icon.height },
+			    TARGET_SETTINGS_BUTTON, { 0, 0 }, 0, g_gs.palette.game_background);
+
 			g_gs.target_menu_scroll += GetMouseWheelMove() * 30;
 			g_gs.menu_scroll = lerp(g_gs.menu_scroll, g_gs.target_menu_scroll, dt * 3);
+
+			if (CheckCollisionPointRec(GetMousePosition(), TARGET_SETTINGS_BUTTON)
+			    && IsMouseButtonPressed(0)) {
+				g_gs.settings_open = !g_gs.settings_open;
+				if (g_gs.settings_open)
+					g_gs.settings_y = g_gs.heightf;
+			}
 
 			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 				Vector2 mouse_pos = GetMousePosition();
@@ -528,6 +552,59 @@ void           produce_frame(void)
 				t += PI / 2;
 				i++;
 			}
+
+			{
+				g_gs.settings_y += 2500 * dt * (g_gs.settings_open ? -1 : 1);
+				if (g_gs.settings_y > g_gs.heightf)
+					g_gs.settings_y = g_gs.heightf;
+				if (g_gs.settings_y < -SETTINGS_H)
+					g_gs.settings_y = SETTINGS_H;
+				if (g_gs.settings_open && g_gs.settings_y <= (g_gs.heightf / 2 - SETTINGS_H / 2))
+					g_gs.settings_y = g_gs.heightf / 2 - SETTINGS_H / 2;
+
+				Rectangle rec = {
+					g_gs.widthf / 2 - SETTINGS_W / 2,
+					g_gs.settings_y,
+					SETTINGS_W,
+					SETTINGS_H,
+				};
+				DrawRectangleRec(rec, g_gs.palette.primary);
+				rec.x += BORDER_WIDTH;
+				rec.y += BORDER_WIDTH;
+				rec.width -= BORDER_WIDTH * 2;
+				rec.height -= BORDER_WIDTH * 2;
+				DrawRectangleRec(rec, g_gs.palette.menu_background);
+
+				constexpr auto TITLE = "Settings";
+				constexpr auto TITLE_H = 60;
+				constexpr auto TITLE_SP = 2;
+
+				auto sz_title = MeasureTextEx(g_gs.font, TITLE, TITLE_H, TITLE_SP);
+
+				DrawTextEx(g_gs.font, TITLE, { rec.x + rec.width / 2 - sz_title.x / 2, rec.y + 10 },
+				    TITLE_H, TITLE_SP, g_gs.palette.primary);
+
+				constexpr auto MUSIC = "Music";
+				constexpr auto SFX = "SFX";
+				constexpr auto ITEM_H = 40;
+				constexpr auto ITEM_SP = 1;
+
+				f32 y = rec.y + TITLE_H + 10 + 10;
+
+				constexpr auto SLIDER_W = SETTINGS_W * .7f;
+				constexpr auto SLIDER_H = ITEM_H * .6f;
+
+				DrawTextEx(
+				    g_gs.font, MUSIC, { rec.x + 20, y }, ITEM_H, ITEM_SP, g_gs.palette.primary);
+				slider(g_gs.music_volume,
+				    { rec.x + rec.width - 20 - SLIDER_W, y + 10, SLIDER_W, SLIDER_H });
+
+				y += ITEM_H;
+				DrawTextEx(
+				    g_gs.font, SFX, { rec.x + 20, y }, ITEM_H, ITEM_SP, g_gs.palette.primary);
+				slider(g_gs.sfx_volume,
+				    { rec.x + rec.width - 20 - SLIDER_W, y + 10, SLIDER_W, SLIDER_H });
+			}
 		}
 
 		if (g_gs.current_dialog) {
@@ -577,6 +654,21 @@ void           produce_frame(void)
 #endif
 	}
 	EndDrawing();
+}
+
+static void slider(f32 &value, Rectangle bounds)
+{
+	DrawRectangleRec(bounds, RED);
+	DrawLineEx({ bounds.x + bounds.height / 2, bounds.y + bounds.height / 2 },
+	    { bounds.x + bounds.width - bounds.height / 2, bounds.y + bounds.height / 2 }, 2,
+	    g_gs.palette.primary);
+	Vector2 handle = {
+		bounds.x + bounds.height / 2 + (bounds.width - bounds.height) * value,
+		bounds.y + bounds.height / 2,
+	};
+	DrawCircleV(handle, bounds.height / 2, g_gs.palette.primary);
+
+	if (CheckCollsionPointRec(GetMousePosition(), bounds)) { }
 }
 
 // Shamelessly stolen from Raylib examples :^)
