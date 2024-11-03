@@ -66,6 +66,7 @@ compile_commands.json
 
 # Build folder
 [Bb]uild
+build.*
 
 # Android
 *apk*

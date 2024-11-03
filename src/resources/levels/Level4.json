@@ -1,5 +1,5 @@
 {
-    "files_required": 4,
+    "files_required": 5,
     "name": "core.omnitek.local",
     "author_time": 21.26,
     "start_position": [
@@ -233,7 +233,7 @@
                 ]
             ],
             "value": 3.14159,
-            "power": 1.2
+            "power": 1
         }
     ],
     "on_unlock_dialog": 0
