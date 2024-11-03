@@ -29,6 +29,8 @@ struct GameState {
 	usize current_dialog_idx, current_dialog_dialog_idx;
 	f32   dialog_box_y;
 
+	bool cam_smooth = true;
+
 	int total_collected_files = 0;
 
 	ColorPalette palette;

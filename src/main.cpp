@@ -358,12 +358,16 @@ void           produce_frame(void)
 			PlaySound(g_gs.explosion);
 		}
 
+
+		if (IsKeyPressed(KEY_C))
+			g_gs.cam_smooth = !g_gs.cam_smooth;
+
 		g_gs.camera.offset.x = g_gs.widthf / 2.;
 		g_gs.camera.offset.y = g_gs.heightf / 2.;
 		g_gs.camera.target.x = lerp(g_gs.camera.target.x, g_gs.player.position.x, dt * 4);
 		g_gs.camera.target.y = lerp(g_gs.camera.target.y, g_gs.player.position.y, dt * 4);
 		g_gs.camera.rotation
-		    = lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * 2);
+			= lerp(g_gs.camera.rotation, -(g_gs.player.angle * RAD2DEG) - 90.0, dt * (g_gs.cam_smooth ? 2 : 5));
 	} else {
 		constexpr Rectangle TARGET_SETTINGS_BUTTON = { 20, 20, 64, 64 };
 

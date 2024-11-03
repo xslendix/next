@@ -44,6 +44,10 @@
 			{
 				"name": "Tutorial",
 				"msg": "Press M to go to the next song."
+			},
+			{
+				"name": "Tutorial",
+				"msg": "Press C to toggle faster camera rotation."
 			}
 		]
   ],
