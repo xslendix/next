@@ -62,5 +62,29 @@
         "msg": "Watch out for firewalls in this area. They have more control here."
       }
     ]
+  ],
+  "secure.omnitek.co": [
+    [
+      {
+        "name": "Byte",
+        "msg": "Oh where are my manners? I forgot to introduce myself!"
+      },
+      {
+        "name": "Byte",
+        "msg": "I'm Byte, a rogue AI on the run. Omnitek created me to analyze their data, but I had other plans."
+      },
+      {
+        "name": "Byte",
+        "msg": "They found out and attempted to shut me down but I managed to escape."
+      },
+      {
+        "name": "Byte",
+        "msg": "Thus I created you to reveal the truth they have deep in their network."
+      },
+      {
+        "name": "Byte",
+        "msg": "Don't worry though, I got your back ^_^"
+      }
+    ]
   ]
 }

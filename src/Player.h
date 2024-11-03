@@ -10,7 +10,7 @@ constexpr auto PLAYER_SPEED = 600;
 constexpr auto PLAYER_FRICTION = 0.20;
 constexpr auto PLAYER_MAX_SPEED = 600;
 constexpr auto BOUNCE_SLOWDOWN = 0.25;
-constexpr auto PLAYER_MAX_HP = 3.0f;
+constexpr auto PLAYER_MAX_HP = 2.5f;
 
 struct Player {
 	struct TrailPickup {
