@@ -3,6 +3,7 @@ from tkinter import messagebox, simpledialog, filedialog
 import json
 import math
 
+
 class LevelEditor:
 	def __init__(self, master):
 		self.level_data = {
@@ -86,12 +87,11 @@ class LevelEditor:
 
 		self.draw_level()
 
+		self.canvas.focus_set()
 
-		self.canvas.focus_set()  # Add this line in __init__
 
 	def on_key_scroll(self, direction):
-		# Adjust offset based on direction
-		scroll_amount = 20  # Adjust the scroll speed as needed
+		scroll_amount = 20
 		if direction == "left":
 			self.offset_x += scroll_amount
 		elif direction == "right":
@@ -103,6 +103,7 @@ class LevelEditor:
 		
 		self.draw_level()
 
+
 	def edit_zone_kind(self):
 		if self.selected_zone is not None:
 			zone = self.level_data["zones"][self.selected_zone]
@@ -112,6 +113,7 @@ class LevelEditor:
 				self.draw_level()
 		else:
 			messagebox.showinfo("No Zone Selected", "Please select a zone to edit.")
+
 
 	def edit_zone_value(self):
 		if self.selected_zone is not None:
@@ -126,6 +128,7 @@ class LevelEditor:
 		else:
 			messagebox.showinfo("No Zone Selected", "Please select a zone to edit.")
 
+
 	def edit_zone_power(self):
 		if self.selected_zone is not None:
 			zone = self.level_data["zones"][self.selected_zone]
@@ -134,6 +137,7 @@ class LevelEditor:
 			self.draw_level()
 		else:
 			messagebox.showinfo("No Zone Selected", "Please select a zone to edit.")
+
 
 	def edit_wall_kind(self):
 		if self.selected_wall is not None:
@@ -144,6 +148,7 @@ class LevelEditor:
 				self.draw_level()
 		else:
 			messagebox.showinfo("No Wall Selected", "Please select a wall to edit.")
+
 
 	def edit_wall_key_id(self):
 		if self.selected_wall is not None:
@@ -168,6 +173,7 @@ class LevelEditor:
 		else:
 			messagebox.showinfo("No Pickup Selected", "Please select a pickup to edit.")
 
+
 	def edit_pickup_id(self):
 		if self.selected_pickup is not None:
 			pickup = self.level_data["pickups"][self.selected_pickup]
@@ -177,11 +183,13 @@ class LevelEditor:
 		else:
 			messagebox.showinfo("No Pickup Selected", "Please select a pickup to edit.")
 
+
 	def set_start_angle(self):
 		angle = simpledialog.askfloat("Set Start Angle", "Enter angle in degrees:", initialvalue=math.degrees(self.level_data["start_angle"]))
 		if angle is not None:
 			self.level_data["start_angle"] = math.radians(angle)
 			self.draw_level()
+
 
 	def draw_level(self):
 		self.canvas.delete("all")
@@ -217,9 +225,11 @@ class LevelEditor:
 					x - 3, y - 3, x + 3, y + 3, fill=point_color, tags=("zone_point", f"zone_{i}_point_{j}", "movable")
 				)
 
+
 	def draw_origin(self):
 		self.canvas.create_line(self.offset_x - 10, self.offset_y, self.offset_x + 10, self.offset_y, fill="gray")
 		self.canvas.create_line(self.offset_x, self.offset_y - 10, self.offset_x, self.offset_y + 10, fill="gray")
+
 
 	def draw_start_position(self):
 		x, y = self.level_data["start_position"]
@@ -232,16 +242,19 @@ class LevelEditor:
 		end_y = y + line_length * math.sin(math.radians(angle))
 		self.canvas.create_line(x + self.offset_x, y + self.offset_y, end_x + self.offset_x, end_y + self.offset_y, fill="blue")
 
+
 	def toggle_grid(self):
 		self.grid_enabled = not self.grid_enabled
 		messagebox.showinfo("Grid Snapping", f"Grid snapping {'enabled' if self.grid_enabled else 'disabled'}")
 		self.draw_level()
+
 
 	def set_grid_size(self):
 		size = simpledialog.askinteger("Set Grid Size", "Enter grid size:", initialvalue=self.grid_size)
 		if size and size > 0:
 			self.grid_size = size
 			self.draw_level()
+
 
 	def on_right_click(self, event):
 		self.drag_data = {"item": None, "type": "pan", "start_x": event.x, "start_y": event.y}
@@ -271,6 +284,7 @@ class LevelEditor:
 
 		self.draw_level()
 
+
 	def on_mouse_drag(self, event):
 		if self.grid_enabled:
 			snapped_x = round((event.x - self.offset_x) / self.grid_size) * self.grid_size
@@ -297,6 +311,7 @@ class LevelEditor:
 				json.dump(self.level_data, f, indent=4)
 			messagebox.showinfo("Saved", f"Level saved to {filename}")
 
+
 	def load_level(self):
 		filename = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
 		if filename:
@@ -304,21 +319,25 @@ class LevelEditor:
 				self.level_data = json.load(f)
 			self.draw_level()
 
+
 	def add_pickup(self):
 		new_x, new_y = 10, 10
 		pickup_id = len(self.level_data["pickups"])
 		self.level_data["pickups"].append({"kind": 0, "id": pickup_id, "x": new_x, "y": new_y})
 		self.draw_level()
 
+
 	def add_wall(self):
 		start_x, start_y = 10, 10
 		self.level_data["walls"].append({"kind": 0, "points": [[start_x, start_y], [start_x + 50, start_y + 50]], "key_id": 0})
 		self.draw_level()
 
+
 	def add_zone(self):
 		start_x, start_y = 10, 10
 		self.level_data["zones"].append({"kind": 0, "points": [[start_x, start_y], [start_x + 50, start_y], [start_x + 50, start_y + 50], [start_x, start_y + 50]], "value": 0})
 		self.draw_level()
+
 
 	def add_point_before(self):
 		if self.selected_wall is not None:
@@ -331,6 +350,7 @@ class LevelEditor:
 			self.level_data["zones"][self.selected_zone]["points"].insert(self.selected_point_index, offset_point)
 		self.draw_level()
 
+
 	def add_point_after(self):
 		if self.selected_wall is not None:
 			point = self.level_data["walls"][self.selected_wall]["points"][self.selected_point_index]
@@ -341,6 +361,7 @@ class LevelEditor:
 			offset_point = [point[0] + 10, point[1] + 10]
 			self.level_data["zones"][self.selected_zone]["points"].insert(self.selected_point_index + 1, offset_point)
 		self.draw_level()
+
 
 	def extract_index(self, tags):
 		for tag in tags:
@@ -359,7 +380,6 @@ class LevelEditor:
 		return None, None
 
 
-
 	def on_pan_canvas(self, event):
 		dx = event.x - self.drag_data["start_x"]
 		dy = event.y - self.drag_data["start_y"]
@@ -368,11 +388,13 @@ class LevelEditor:
 		self.drag_data["start_x"] = event.x
 		self.drag_data["start_y"] = event.y
 		self.draw_level()
+
+
 	def on_mouse_release(self, event):
 		self.drag_data = {"item": None, "type": None, "index": None}
 
+
 	def remove_point(self):
-		"""Remove the selected point from a wall or zone, and remove the wall or zone if all points are removed."""
 		if self.selected_wall is not None and self.selected_point_index is not None:
 			points = self.level_data["walls"][self.selected_wall]["points"]
 			if len(points) > 1:
@@ -405,4 +427,4 @@ if __name__ == "__main__":
 	root.title("Level Editor")
 	editor = LevelEditor(root)
 	root.mainloop()
-			
+
