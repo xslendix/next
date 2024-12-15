@@ -6,6 +6,10 @@
 
 A fun racing game with a story!
 
+### Building
+
+Run CMake and build. CPM and FetchContent should pull in everything for you.
+
 ### Controls
 
 Keyboard/Mouse:
@@ -14,13 +18,9 @@ Keyboard/Mouse:
  - R - Restart/retry
  - Scroll - Move through main menu
 
-### Building
-
-Run CMake and build. CPM should pull in everything for you.
-
 ### Links
 
- - itch.io Release: $(itch.io Game Page)
+ - itch.io Release: https://slendiman.itch.io/byteracer
 
 ### License
 
