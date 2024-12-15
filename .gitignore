@@ -71,3 +71,5 @@ build.*
 # Android
 *apk*
 android.*
+
+.DS_Store
